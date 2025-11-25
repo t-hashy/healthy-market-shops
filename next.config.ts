@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === 'production';
-const basePath = isProd ? '/healthy-shops-instruction' : ''; // Replace with your repository name if deploying to GitHub Pages subpath
-const assetPrefix = isProd ? '/healthy-shops-instruction/' : ''; // Replace with your repository name if deploying to GitHub Pages subpath
+const basePath = isProd ? '/healthy-market-shops' : ''; // Replace with your repository name if deploying to GitHub Pages subpath
+const assetPrefix = isProd ? '/healthy-market-shops/' : ''; // Replace with your repository name if deploying to GitHub Pages subpath
 
 const nextConfig: NextConfig = {
   output: 'export',
