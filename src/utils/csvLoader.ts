@@ -22,37 +22,37 @@ export const loadExhibitors = async (): Promise<Exhibitor[]> => {
       skipEmptyLines: true,
     });
 
-    const exhibitors: Exhibitor[] = results.data
-      .map((row: any, index: number) => {
-        // Basic validation for each row
-        if (!row.id || !row.name || !row.category || !row.shortDesc || !row.longDesc || !row.imageUrl) {
-          console.warn(`Row ${index + 2} is missing required fields. Skipping.`);
-          return null;
-        }
+    const exhibitors: Exhibitor[] = results.data.reduce((acc: Exhibitor[], row: any, index: number) => {
+      // Basic validation for each row
+      if (!row.id || !row.name || !row.category || !row.shortDesc || !row.longDesc || !row.imageUrl) {
+        console.warn(`Row ${index + 2} is missing required fields. Skipping.`);
+        return acc;
+      }
 
-        // Validate category
-        if (!isCategory(row.category)) {
-          console.warn(`Row ${index + 2} has an invalid category: "${row.category}". Skipping.`);
-          return null;
-        }
+      // Validate category
+      if (!isCategory(row.category)) {
+        console.warn(`Row ${index + 2} has an invalid category: "${row.category}". Skipping.`);
+        return acc;
+      }
 
-        // We trim the data to remove any leading/trailing whitespace.
-        return {
-          id: row.id.trim(),
-          name: row.name.trim(),
-          category: row.category,
-          shortDesc: row.shortDesc.trim(),
-          longDesc: row.longDesc.trim(),
-          imageUrl: row.imageUrl.trim(),
-          websiteUrl: row.websiteUrl ? row.websiteUrl.trim() : undefined, // New
-          address: row.address ? row.address.trim() : undefined,
-          facebookUrl: row.facebookUrl ? row.facebookUrl.trim() : undefined,
-          instagramUrl: row.instagramUrl ? row.instagramUrl.trim() : undefined,
-          twitterUrl: row.twitterUrl ? row.twitterUrl.trim() : undefined,
-        };
-      })
-      // Filter out any null values that resulted from invalid rows.
-      .filter((exhibitor): exhibitor is Exhibitor => exhibitor !== null);
+      // We trim the data to remove any leading/trailing whitespace.
+      const exhibitor: Exhibitor = {
+        id: row.id.trim(),
+        name: row.name.trim(),
+        category: row.category,
+        shortDesc: row.shortDesc.trim(),
+        longDesc: row.longDesc.trim(),
+        imageUrl: row.imageUrl.trim(),
+        websiteUrl: row.websiteUrl ? row.websiteUrl.trim() : undefined,
+        address: row.address ? row.address.trim() : undefined,
+        facebookUrl: row.facebookUrl ? row.facebookUrl.trim() : undefined,
+        instagramUrl: row.instagramUrl ? row.instagramUrl.trim() : undefined,
+        twitterUrl: row.twitterUrl ? row.twitterUrl.trim() : undefined,
+      };
+
+      acc.push(exhibitor);
+      return acc;
+    }, []);
 
     return exhibitors;
   } catch (error) {
