@@ -16,21 +16,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a recent LTS Node.js version
+          node-version: '20'
 
       - name: Install dependencies
+        working-directory: ./healthy-shops-instruction
         run: npm ci
 
       - name: Build Next.js project
+        working-directory: ./healthy-shops-instruction
         run: npm run build
         env:
-          # Set the base path to your repository name for GitHub Pages deployment
-          NEXT_PUBLIC_BASE_PATH: /healthy-market-shops # Replace with your repository name
+          NODE_ENV: production
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
-          # The branch to deploy to. Usually 'gh-pages' for project sites.
+          publish_dir: ./healthy-shops-instruction/out
           publish_branch: gh-pages

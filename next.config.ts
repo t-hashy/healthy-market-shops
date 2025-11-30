@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === 'production';
-const basePath = isProd ? '/healthy-market-shops' : ''; // Replace with your repository name if deploying to GitHub Pages subpath
-const assetPrefix = isProd ? '/healthy-market-shops/' : ''; // Replace with your repository name if deploying to GitHub Pages subpath
+const basePath = isProd ? '/healthy-market-shops' : '';
 
 const nextConfig: NextConfig = {
   output: 'export',
@@ -10,10 +9,9 @@ const nextConfig: NextConfig = {
   
   // Configure for GitHub Pages deployment
   // Set basePath to your repository name if deploying to a subpath (e.g., https://username.github.io/repo-name)
-  // Set assetPrefix to the same value with a trailing slash
+  // Set assetPrefix to the same value
   basePath: basePath,
-  assetPrefix: assetPrefix,
-  trailingSlash: true, // Ensures consistent URL structure for static exports
+  assetPrefix: basePath,
 
   /* config options here */
   reactCompiler: true,
