@@ -1,15 +1,11 @@
 export type Exhibitor = {
-  id: string;
+  id: string; // Firestore document ID
   name: string;
-  category: Category;
-  shortDesc: string;
-  longDesc: string;
-  imageUrl: string;
-  address?: string; // New: Address of the exhibitor
-  websiteUrl?: string; // New: Official website URL
-  facebookUrl?: string; // New: Facebook page URL
-  instagramUrl?: string; // New: Instagram profile URL
-  twitterUrl?: string; // New: Twitter profile URL
+  category?: Category;
+  marketDays?: string;
+  website?: string;
+  description?: string;
+  imageUrl?: string;
 };
 
 export const CATEGORIES = ["農家", "飲食", "カフェ", "クラフト"] as const;

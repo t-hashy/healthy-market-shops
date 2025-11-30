@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const notoSansJp = Noto_Sans_JP({
   subsets: ["latin"],
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body
         className={`${notoSansJp.className} bg-stone-50 text-stone-900 antialiased`}
       >
-        <main>{children}</main>
+        <AuthProvider>
+          <main>{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );
