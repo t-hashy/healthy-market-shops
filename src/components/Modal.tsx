@@ -173,13 +173,13 @@ export default function Modal({ exhibitor, events = [], onClose, onSelectEvent }
           </svg>
         </button>
 
-        {/* Image Gallery Area */}
+        {/* Image Gallery Area (スマホ横向き撮影比率 4:3 にフィット) */}
         <div className="relative w-full bg-stone-900 flex-shrink-0">
-          <div className="relative w-full h-64 md:h-80">
+          <div className="relative w-full aspect-[4/3] max-h-[48vh] sm:max-h-[58vh]">
             <Image
               src={currentImage}
               alt={`${exhibitor.name} 画像 ${activeImageIndex + 1}`}
-              className="object-cover"
+              className="object-contain sm:object-cover"
               fill
               priority
             />
@@ -212,14 +212,14 @@ export default function Modal({ exhibitor, events = [], onClose, onSelectEvent }
             )}
           </div>
 
-          {/* Thumbnail row if multiple images */}
+          {/* Thumbnail row if multiple images (4:3 比率) */}
           {images.length > 1 && (
             <div className="flex gap-2 p-2 bg-stone-950 overflow-x-auto">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
+                  className={`relative w-16 aspect-[4/3] rounded-lg overflow-hidden flex-shrink-0 transition-all ${
                     idx === activeImageIndex
                       ? "ring-2 ring-emerald-500 scale-105 opacity-100"
                       : "opacity-60 hover:opacity-100"
@@ -233,16 +233,16 @@ export default function Modal({ exhibitor, events = [], onClose, onSelectEvent }
         </div>
 
         {/* Content Area */}
-        <div className="p-6 md:p-8 overflow-y-auto">
+        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto">
           {/* Categories as Hashtags */}
           {categories.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-1.5 mb-2.5">
               {categories.map((cat) => {
                 const catStyle = CATEGORY_STYLES[cat] || defaultStyles;
                 return (
                   <span
                     key={cat}
-                    className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${catStyle.badgeBg} ${catStyle.badgeText} border ${catStyle.border}`}
+                    className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-md ${catStyle.badgeBg} ${catStyle.badgeText} border ${catStyle.border}`}
                   >
                     #{cat}
                   </span>
@@ -251,12 +251,12 @@ export default function Modal({ exhibitor, events = [], onClose, onSelectEvent }
             </div>
           )}
 
-          <h2 className="text-3xl md:text-4xl font-extrabold text-stone-900 mb-4">{exhibitor.name}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#2D2A26] mb-3 tracking-tight">{exhibitor.name}</h2>
 
           {/* Description */}
           {exhibitor.description && (
-            <div className="mb-6">
-              <p className="text-base md:text-lg text-stone-700 leading-relaxed whitespace-pre-wrap">
+            <div className="mb-5">
+              <p className="text-sm sm:text-base text-[#4A453E] leading-relaxed whitespace-pre-wrap">
                 {exhibitor.description}
               </p>
             </div>

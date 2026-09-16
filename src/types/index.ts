@@ -49,7 +49,7 @@ export type Category = (typeof CATEGORIES)[number];
 export const FILTER_CATEGORIES = ["ALL", ...CATEGORIES] as const;
 export type FilterCategory = (typeof FILTER_CATEGORIES)[number];
 
-// カテゴリごとのスタイルを定義
+// カテゴリごとのスタイルを定義（オーガニック・自然派マルシェ向けの洗練されたアースカラー）
 export const CATEGORY_STYLES: {
   [key in Category]: {
     base: string;
@@ -61,38 +61,53 @@ export const CATEGORY_STYLES: {
   };
 } = {
   農家: {
-    base: "green",
-    bg: "bg-green-50",
-    text: "text-green-800",
-    badgeBg: "bg-green-100",
-    badgeText: "text-green-800",
-    border: "border-green-300",
+    base: "emerald",
+    bg: "bg-emerald-50/60",
+    text: "text-emerald-900",
+    badgeBg: "bg-emerald-100/80",
+    badgeText: "text-emerald-900",
+    border: "border-emerald-200/80",
   },
   飲食: {
-    base: "red",
-    bg: "bg-red-50",
-    text: "text-red-800",
-    badgeBg: "bg-red-100",
-    badgeText: "text-red-800",
-    border: "border-red-300",
+    base: "amber",
+    bg: "bg-amber-50/60",
+    text: "text-amber-950",
+    badgeBg: "bg-amber-100/80",
+    badgeText: "text-amber-900",
+    border: "border-amber-200/80",
   },
   カフェ: {
     base: "stone",
-    bg: "bg-stone-100",
+    bg: "bg-stone-100/60",
     text: "text-stone-800",
-    badgeBg: "bg-stone-200",
+    badgeBg: "bg-stone-200/70",
     badgeText: "text-stone-800",
-    border: "border-stone-300",
+    border: "border-stone-300/80",
   },
   クラフト: {
-    base: "orange",
-    bg: "bg-orange-50",
-    text: "text-orange-800",
-    badgeBg: "bg-orange-100",
-    badgeText: "text-orange-800",
-    border: "border-orange-300",
+    base: "teal",
+    bg: "bg-teal-50/60",
+    text: "text-teal-950",
+    badgeBg: "bg-teal-100/80",
+    badgeText: "text-teal-900",
+    border: "border-teal-200/80",
   },
 };
+
+/**
+ * 開催回を名前の昇順（自然順ソート: 第1回 -> 第2回 -> 第10回）でソートする
+ */
+export function sortEventsAscending(events: MarketEvent[]): MarketEvent[] {
+  return [...events].sort((a, b) => {
+    const nameA = (a.name || '').replace(/[０-９]/g, (s) =>
+      String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+    );
+    const nameB = (b.name || '').replace(/[０-９]/g, (s) =>
+      String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+    );
+    return nameA.localeCompare(nameB, 'ja', { numeric: true });
+  });
+}
 
 // ヘルパー関数: カテゴリ配列を取得
 export function getExhibitorCategories(exhibitor: Exhibitor): Category[] {

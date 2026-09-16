@@ -13,8 +13,10 @@ import {
   getExhibitorImages,
   getExhibitorLinks,
   getExhibitorEvents,
+  sortEventsAscending,
 } from '../types';
 import ExhibitorForm from './ExhibitorForm';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Props = {
   editTargetExhibitorId?: string | null;
@@ -31,8 +33,11 @@ export default function ExhibitorManager({ editTargetExhibitorId, onClearEditTar
   const [filterVisibility, setFilterVisibility] = useState<'all' | 'visible' | 'hidden'>('all');
   const [filterEventId, setFilterEventId] = useState<string>('all');
   const [searchKeyword, setSearchKeyword] = useState('');
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (!user || authLoading) return;
+
     const q = query(collection(db, 'exhibitors'), orderBy('name', 'asc'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -52,15 +57,15 @@ export default function ExhibitorManager({ editTargetExhibitorId, onClearEditTar
     return () => unsubscribe();
   }, []);
 
-  // 開催回データの取得
+  // 開催回データの取得（名前昇順でソート）
   useEffect(() => {
-    const q = query(collection(db, 'marketEvents'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'marketEvents'));
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const list: MarketEvent[] = [];
         snapshot.forEach((d) => list.push({ id: d.id, ...d.data() } as MarketEvent));
-        setEvents(list);
+        setEvents(sortEventsAscending(list));
       },
       (err) => {
         console.warn('Error fetching marketEvents:', err);
@@ -78,7 +83,7 @@ export default function ExhibitorManager({ editTargetExhibitorId, onClearEditTar
         setIsFormOpen(true);
       }
     }
-  }, [editTargetExhibitorId, exhibitors]);
+  }, [editTargetExhibitorId, exhibitors, user, authLoading]);
 
   const handleAddNew = () => {
     setExhibitorToEdit(null);

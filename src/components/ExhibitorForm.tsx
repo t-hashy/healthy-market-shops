@@ -14,6 +14,7 @@ import {
   getExhibitorCategories,
   getExhibitorImages,
   getExhibitorLinks,
+  sortEventsAscending,
 } from '../types';
 import Image from 'next/image';
 
@@ -61,15 +62,15 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
-  // 開催回データの取得
+  // 開催回データの取得（名前昇順でソート）
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const q = query(collection(db, 'marketEvents'), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'marketEvents'));
         const snap = await getDocs(q);
         const list: MarketEvent[] = [];
         snap.forEach((d) => list.push({ id: d.id, ...d.data() } as MarketEvent));
-        setAvailableEvents(list);
+        setAvailableEvents(sortEventsAscending(list));
       } catch (err) {
         console.warn('Error fetching marketEvents for form:', err);
       }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../utils/firebase';
 import { EditRequest } from '../types';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Props = {
   onSelectExhibitorForEdit?: (exhibitorId: string) => void;
@@ -14,8 +15,11 @@ export default function EditRequestManager({ onSelectExhibitorForEdit }: Props) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'resolved'>('all');
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (!user || authLoading) return;
+
     const q = query(collection(db, 'editRequests'), orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(
@@ -37,7 +41,7 @@ export default function EditRequestManager({ onSelectExhibitorForEdit }: Props) 
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [user, authLoading]);
 
   // ステータス（未対応 / 対応済み）の切り替え
   const handleToggleStatus = async (request: EditRequest) => {

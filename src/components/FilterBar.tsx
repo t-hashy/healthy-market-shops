@@ -1,51 +1,43 @@
 "use client";
 
-import { FILTER_CATEGORIES, FilterCategory, CATEGORY_STYLES, Category } from "../types";
+import { FILTER_CATEGORIES, FilterCategory } from "../types";
 
 type Props = {
   selectedFilter: FilterCategory;
   onFilterChange: (category: FilterCategory) => void;
 };
 
-// Define a default style for the "ALL" category.
-const ALL_CATEGORY_STYLE = {
-  base: "gray",
-  bg: "bg-gray-200",
-  text: "text-gray-800", // Ensure dark text for readability
+const CATEGORY_ICONS: Record<FilterCategory, string> = {
+  ALL: "🌱",
+  農家: "🥬",
+  飲食: "🍲",
+  カフェ: "☕",
+  クラフト: "🧵",
 };
-
-// A simple, reusable button component for filtering.
-const FilterButton = ({ category, selected, onClick }: { category: FilterCategory, selected: boolean, onClick: () => void }) => {
-  const baseStyle = "px-4 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out shadow-sm whitespace-nowrap";
-  
-  // Determine the category style. Use ALL_CATEGORY_STYLE if the category is "ALL".
-  const categorySpecificStyle = category === "ALL" ? ALL_CATEGORY_STYLE : CATEGORY_STYLES[category as Category];
-  
-  const selectedStyle = `bg-${categorySpecificStyle.base}-600 ${categorySpecificStyle.text} scale-105 shadow-lg`;
-  const unselectedStyle = "bg-white text-gray-700 hover:bg-gray-100 hover:shadow-md";
-
-  return (
-    <button
-      onClick={onClick}
-      className={`${baseStyle} ${selected ? selectedStyle : unselectedStyle}`}
-    >
-      {category}
-    </button>
-  );
-};
-
 
 export default function FilterBar({ selectedFilter, onFilterChange }: Props) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 p-4 mb-8 bg-gray-50 rounded-xl shadow-inner">
-      {FILTER_CATEGORIES.map((category) => (
-        <FilterButton
-          key={category}
-          category={category}
-          selected={selectedFilter === category}
-          onClick={() => onFilterChange(category)}
-        />
-      ))}
+    <div className="w-full mb-6">
+      <div className="flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-1">
+        {FILTER_CATEGORIES.map((category) => {
+          const isSelected = selectedFilter === category;
+          return (
+            <button
+              key={category}
+              type="button"
+              onClick={() => onFilterChange(category)}
+              className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap cursor-pointer flex items-center gap-1.5 border ${
+                isSelected
+                  ? "bg-[#2D5A43] text-white border-[#2D5A43] shadow-xs scale-102 font-semibold"
+                  : "bg-white text-[#5C564E] border-[#E5E0D8] hover:bg-[#F9F7F3] hover:text-[#2D2A26] hover:border-[#D0C9BD]"
+              }`}
+            >
+              <span className="text-xs">{CATEGORY_ICONS[category]}</span>
+              <span>{category === "ALL" ? "すべて" : category}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

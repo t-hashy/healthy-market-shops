@@ -13,7 +13,8 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '../utils/firebase';
-import { Exhibitor, MarketEvent, CATEGORY_STYLES, getExhibitorCategories } from '../types';
+import { Exhibitor, MarketEvent, CATEGORY_STYLES, getExhibitorCategories, sortEventsAscending } from '../types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EventManager() {
   const [events, setEvents] = useState<MarketEvent[]>([]);
@@ -45,9 +46,13 @@ export default function EventManager() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [filterParticipation, setFilterParticipation] = useState<'all' | 'joined' | 'not_joined'>('all');
 
-  // 1. 開催回データのリアルタイム購読
+  const {user, loading} = useAuth();
+
+  // 1. 開催回データのリアルタイム購読（名前の昇順でソート）
   useEffect(() => {
-    const q = query(collection(db, 'marketEvents'), orderBy('createdAt', 'desc'));
+    if(!user || loading) return;
+
+    const q = query(collection(db, 'marketEvents'));
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -55,14 +60,15 @@ export default function EventManager() {
         snapshot.forEach((d) => {
           list.push({ id: d.id, ...d.data() } as MarketEvent);
         });
-        setEvents(list);
+        const sorted = sortEventsAscending(list);
+        setEvents(sorted);
         setLoadingEvents(false);
 
         // まだ選択されていなければ「次回」イベントまたは先頭のイベントを選択
         setSelectedEventId((prev) => {
-          if (prev && list.some((e) => e.id === prev)) return prev;
-          const upcoming = list.find((e) => e.isUpcoming);
-          return upcoming ? upcoming.id : list[0]?.id || '';
+          if (prev && sorted.some((e) => e.id === prev)) return prev;
+          const upcoming = sorted.find((e) => e.isUpcoming);
+          return upcoming ? upcoming.id : sorted[0]?.id || '';
         });
       },
       (err) => {
@@ -71,7 +77,15 @@ export default function EventManager() {
       }
     );
     return () => unsubscribe();
-  }, []);
+  }, [user, loading]);
+
+  // 過去の入力情報から開催場所のユニーク一覧を抽出（プルダウンサジェスト用）
+  const pastLocations = useMemo(() => {
+    const locs = events
+      .map((e) => e.location?.trim())
+      .filter((loc): loc is string => Boolean(loc));
+    return Array.from(new Set(locs));
+  }, [events]);
 
   // 2. 出店者データのリアルタイム購読
   useEffect(() => {
@@ -782,17 +796,58 @@ export default function EventManager() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">
-                  開催場所 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="例: 世田谷公園 けやき広場"
-                  value={eventFormData.location || ''}
-                  onChange={(e) => setEventFormData({ ...eventFormData, location: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-stone-900"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-stone-700">
+                    開催場所 <span className="text-rose-500">*</span>
+                  </label>
+                  {pastLocations.length > 0 && (
+                    <span className="text-[11px] text-stone-400">
+                      過去の履歴から選択または自由入力
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      list="past-locations-list"
+                      placeholder="例: 世田谷公園 けやき広場"
+                      value={eventFormData.location || ''}
+                      onChange={(e) => setEventFormData({ ...eventFormData, location: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-stone-900 bg-white"
+                    />
+                    <datalist id="past-locations-list">
+                      {pastLocations.map((loc) => (
+                        <option key={loc} value={loc} />
+                      ))}
+                    </datalist>
+                  </div>
+
+                  {/* 過去に入力された場所のプルダウン選択（サジェスト） */}
+                  {pastLocations.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            setEventFormData({ ...eventFormData, location: e.target.value });
+                          }
+                        }}
+                        className="text-xs border border-stone-300 rounded-lg px-2.5 py-1.5 bg-stone-50 text-stone-700 hover:bg-stone-100 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                      >
+                        <option value="">▼ 過去の入力履歴から選ぶ（プルダウン）</option>
+                        {pastLocations.map((loc) => (
+                          <option key={loc} value={loc}>
+                            {loc}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-[11px] text-stone-400">※新しい場所の直接入力も可能です</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between">
