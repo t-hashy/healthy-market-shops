@@ -49,6 +49,14 @@ export type Category = (typeof CATEGORIES)[number];
 export const FILTER_CATEGORIES = ["ALL", ...CATEGORIES] as const;
 export type FilterCategory = (typeof FILTER_CATEGORIES)[number];
 
+export const CATEGORY_ICONS: Record<FilterCategory, string> = {
+  ALL: "🌱",
+  農家: "🥬",
+  飲食: "🍲",
+  カフェ: "☕",
+  クラフト: "🧵",
+};
+
 // カテゴリごとのスタイルを定義（オーガニック・自然派マルシェ向けの洗練されたアースカラー）
 export const CATEGORY_STYLES: {
   [key in Category]: {

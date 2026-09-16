@@ -1,18 +1,10 @@
 "use client";
 
-import { FILTER_CATEGORIES, FilterCategory } from "../types";
+import { FILTER_CATEGORIES, FilterCategory, CATEGORY_ICONS } from "../types";
 
 type Props = {
   selectedFilter: FilterCategory;
   onFilterChange: (category: FilterCategory) => void;
-};
-
-const CATEGORY_ICONS: Record<FilterCategory, string> = {
-  ALL: "🌱",
-  農家: "🥬",
-  飲食: "🍲",
-  カフェ: "☕",
-  クラフト: "🧵",
 };
 
 export default function FilterBar({ selectedFilter, onFilterChange }: Props) {

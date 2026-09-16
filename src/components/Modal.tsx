@@ -287,24 +287,54 @@ export default function Modal({ exhibitor, events = [], onClose, onSelectEvent }
             </div>
           )}
 
-          {/* 出店履歴（出店回一覧） */}
+          {/* Links (Website & SNS) - 重要情報なので過去の出店回より上に配置 */}
+          {links.length > 0 && (
+            <div className="mb-6 pt-4 border-t border-stone-200">
+              <h3 className="text-base sm:text-lg font-bold text-[#2D2A26] mb-3 flex items-center gap-2">
+                <span>🌐</span>
+                <span>ウェブサイト・SNS</span>
+              </h3>
+              <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                {links.map((link, idx) => (
+                  <a
+                    key={idx}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all shadow-xs hover:shadow-md hover:-translate-y-0.5 ${getLinkBtnStyle(
+                      link.title,
+                      link.url
+                    )}`}
+                  >
+                    {getLinkIcon(link.title, link.url)}
+                    <span>{link.title}</span>
+                    <svg className="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0l-7 7" />
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 出店履歴（出店回一覧） - 参考情報として下部に配置 */}
           {participatingEvents.length > 0 && (
-            <div className="mb-6 p-4 bg-stone-50 rounded-2xl border border-stone-200">
+            <div className="mb-6 p-4 bg-stone-50/80 rounded-2xl border border-stone-200/80">
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-stone-900">過去の出店回</span>
+                  <span className="text-xs sm:text-sm font-bold text-stone-900">過去の出店歴</span>
                   <span className="text-xs text-stone-500 font-medium">
                     (累計 {participatingEvents.length} 回)
                   </span>
                 </div>
                 <span className="text-[11px] text-emerald-700 font-medium">
-                  クリックで該当回の出店者一覧へ
+                  タップで該当回を表示
                 </span>
               </div>
 
               {/* 出店回タグリスト（上限を超えたら折りたたみ・スクロール領域） */}
               <div
-                className={`flex flex-wrap gap-2 transition-all ${
+                className={`flex flex-wrap gap-1.5 sm:gap-2 transition-all ${
                   isHistoryExpanded
                     ? 'max-h-36 overflow-y-auto pr-1'
                     : participatingEvents.length > 4
@@ -368,33 +398,6 @@ export default function Modal({ exhibitor, events = [], onClose, onSelectEvent }
                   </button>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Links (Website & SNS) */}
-          {links.length > 0 && (
-            <div className="mt-6 pt-6 border-t border-stone-200">
-              <h3 className="text-lg font-bold text-stone-900 mb-3">ウェブサイト・SNS</h3>
-              <div className="flex flex-wrap gap-2.5">
-                {links.map((link, idx) => (
-                  <a
-                    key={idx}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${getLinkBtnStyle(
-                      link.title,
-                      link.url
-                    )}`}
-                  >
-                    {getLinkIcon(link.title, link.url)}
-                    <span>{link.title}</span>
-                    <svg className="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0l-7 7" />
-                    </svg>
-                  </a>
-                ))}
-              </div>
             </div>
           )}
 
