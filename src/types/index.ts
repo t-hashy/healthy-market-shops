@@ -16,6 +16,7 @@ export type Exhibitor = {
   website?: string; // 互換性
   facebookUrl?: string; // 互換性
   instagramUrl?: string; // 互換性
+  twitterUrl?: string; // 互換性
   links?: SocialLink[]; // タイトル＋URLの複数リンク
   isHidden?: boolean; // 非表示フラグ
   eventIds?: string[]; // 参加した開催回（MarketEvent）のID配列
