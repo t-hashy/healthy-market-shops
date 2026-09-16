@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 出店者情報（exhibitorsコレクション）
+    match /exhibitors/{exhibitorId} {
+      // 誰でも閲覧（一覧・詳細）可能
+      allow read: if true;
+
+      // 管理者（healthymarket2013@gmail.com）のみ作成・更新・削除可能
+      allow write: if request.auth != null && request.auth.token.email == 'healthymarket2013@gmail.com';
+    }
+
+    // 修正依頼（editRequestsコレクション）
+    match /editRequests/{requestId} {
+      // 出店者自身・一般ユーザー誰でも修正依頼を作成可能
+      allow create: if true;
+
+      // 管理者（healthymarket2013@gmail.com）のみ閲覧・更新・削除可能
+      allow read, update, delete: if request.auth != null && request.auth.token.email == 'healthymarket2013@gmail.com';
+    }
+
+    // 開催回情報（marketEventsコレクション）
+    match /marketEvents/{eventId} {
+      // 誰でも閲覧可能
+      allow read: if true;
+
+      // 管理者のみ作成・更新・削除可能
+      allow write: if request.auth != null && request.auth.token.email == 'healthymarket2013@gmail.com';
+    }
+  }
+}
