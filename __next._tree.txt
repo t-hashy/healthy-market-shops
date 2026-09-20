@@ -1,4 +1,4 @@
 :HL["/healthy-market-shops/_next/static/chunks/a6063a17b1a2f80c.css","style"]
 :HL["/healthy-market-shops/_next/static/chunks/ddf80e5e37a5b00c.css","style"]
 :HL["/healthy-market-shops/_next/static/media/ad9c66e761fed85a-s.p.bd81a64b.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"buildId":"yCmA3mxOWSmj3yLWnYIkV","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"RK5cIDsVgjIQ4SUI2kmXy","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
