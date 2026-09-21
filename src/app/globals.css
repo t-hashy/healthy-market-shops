@@ -1,15 +1,60 @@
 @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
 @import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 :root {
+  /* 基盤背景色・文字色（温かみのある生成りとインクカラー） */
   --background: #FAF6F0;
-  --foreground: #3A3530;
+  --foreground: #2D2622;
+
+  /* アースカラーパレット CSS変数 */
+  --color-marche-bg: #FAF6F0;
+  --color-marche-paper: #FDFBF7;
+  --color-olive: #4A6B5D;
+  --color-olive-dark: #365245;
+  --color-olive-light: #6B8E7D;
+  --color-terracotta: #C86D51;
+  --color-terracotta-dark: #A6533A;
+  --color-terracotta-light: #DF8C72;
+  --color-mustard: #E0A96D;
+  --color-mustard-light: #F0C495;
+  --color-earth-brown: #4A3E38;
+  --color-earth-ink: #2D2622;
+  --color-border-signboard: #2D2622;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: 'Zen Maru Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+@theme {
+  --font-sans: 'Zen Maru Gothic', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --color-background: #FAF6F0;
+  --color-foreground: #2D2622;
+
+  /* アースカラーのTailwindユーティリティ */
+  --color-olive: #4A6B5D;
+  --color-olive-dark: #365245;
+  --color-olive-light: #6B8E7D;
+  --color-terracotta: #C86D51;
+  --color-terracotta-dark: #A6533A;
+  --color-terracotta-light: #DF8C72;
+  --color-mustard: #E0A96D;
+  --color-mustard-light: #F0C495;
+  --color-kinari: #FAF6F0;
+  --color-kinari-paper: #FDFBF7;
+  --color-earth-brown: #4A3E38;
+  --color-earth-ink: #2D2622;
+
+  --color-marche-bg: #FAF6F0;
+  --color-marche-paper: #FDFBF7;
+  --color-marche-olive: #4A6B5D;
+  --color-marche-olive-dark: #365245;
+  --color-marche-terracotta: #C86D51;
+  --color-marche-mustard: #E0A96D;
+  --color-marche-brown: #4A3E38;
+  --color-marche-ink: #2D2622;
+
+  --shadow-signboard: 2px 2px 0px 0px #2D2622;
+  --shadow-signboard-lg: 3px 3px 0px 0px #2D2622;
+  --shadow-signboard-xl: 4px 4px 0px 0px #2D2622;
 }
 
 body {
@@ -17,6 +62,131 @@ body {
   color: var(--foreground);
   font-family: 'Zen Maru Gothic', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* -------------------------------------------------------------
+ * 手作り風ボタン・あしらい用の共通クラス
+ * ----------------------------------------------------------- */
+
+/* 手書き看板風ボタン基本スタイル */
+.btn-handmade,
+.btn-signboard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 2px solid #2D2622;
+  box-shadow: 2px 2px 0px 0px #2D2622;
+  background-color: #FDFBF7;
+  color: #2D2622;
+  padding: 0.5rem 1.25rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.btn-handmade:hover,
+.btn-signboard:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px #2D2622;
+}
+
+.btn-handmade:active,
+.btn-signboard:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px #2D2622;
+}
+
+/* オリーブグリーン看板ボタン */
+.btn-handmade-olive,
+.btn-signboard-olive {
+  background-color: #4A6B5D;
+  color: #FFFFFF;
+  border-color: #2D2622;
+  box-shadow: 2px 2px 0px 0px #2D2622;
+}
+.btn-handmade-olive:hover,
+.btn-signboard-olive:hover {
+  background-color: #365245;
+  box-shadow: 3px 3px 0px 0px #2D2622;
+}
+.btn-handmade-olive:active,
+.btn-signboard-olive:active {
+  box-shadow: 0px 0px 0px 0px #2D2622;
+}
+
+/* テラコッタ看板ボタン */
+.btn-handmade-terracotta,
+.btn-signboard-terracotta {
+  background-color: #C86D51;
+  color: #FFFFFF;
+  border-color: #2D2622;
+  box-shadow: 2px 2px 0px 0px #2D2622;
+}
+.btn-handmade-terracotta:hover,
+.btn-signboard-terracotta:hover {
+  background-color: #A6533A;
+  box-shadow: 3px 3px 0px 0px #2D2622;
+}
+.btn-handmade-terracotta:active,
+.btn-signboard-terracotta:active {
+  box-shadow: 0px 0px 0px 0px #2D2622;
+}
+
+/* マスタード看板ボタン */
+.btn-handmade-mustard,
+.btn-signboard-mustard {
+  background-color: #E0A96D;
+  color: #2D2622;
+  border-color: #2D2622;
+  box-shadow: 2px 2px 0px 0px #2D2622;
+}
+.btn-handmade-mustard:hover,
+.btn-signboard-mustard:hover {
+  background-color: #D39B5E;
+  box-shadow: 3px 3px 0px 0px #2D2622;
+}
+.btn-handmade-mustard:active,
+.btn-signboard-mustard:active {
+  box-shadow: 0px 0px 0px 0px #2D2622;
+}
+
+/* 看板風・手作り風カード */
+.card-handmade,
+.card-signboard {
+  background-color: #FDFBF7;
+  border: 2px solid #2D2622;
+  border-radius: 1.25rem;
+  box-shadow: 3px 3px 0px 0px #2D2622;
+}
+
+/* 看板風バッジ */
+.badge-handmade,
+.badge-signboard {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  border: 1.5px solid #2D2622;
+  box-shadow: 1.5px 1.5px 0px 0px #2D2622;
+}
+
+/* 看板風シャドウユーティリティ */
+.shadow-signboard {
+  box-shadow: 2px 2px 0px 0px #2D2622;
+}
+.shadow-signboard-lg {
+  box-shadow: 3px 3px 0px 0px #2D2622;
+}
+.shadow-signboard-xl {
+  box-shadow: 4px 4px 0px 0px #2D2622;
 }
 
 /* 隠しスクロールバー */

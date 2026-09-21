@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Image from "next/image";
 import { Exhibitor, CATEGORY_STYLES, getExhibitorCategories, getExhibitorImages } from "../types";
 
@@ -25,59 +26,80 @@ export default function ExhibitorCard({ exhibitor, onClick, index = 0 }: Props) 
   const images = getExhibitorImages(exhibitor);
   const mainImage = images[0] || exhibitor.imageUrl || placeholderImage;
 
-  // あえてランダム風に傾き（-1.5deg 〜 1.5deg）をつけて温かみのあるポラロイド感を追加
+  // 出店者紹介文の整形（PC表示用：100文字で切って以降は「...」とする）
+  const truncatedDescription = useMemo(() => {
+    if (!exhibitor.description) return null;
+    const text = exhibitor.description.trim();
+    return text.length > 100 ? `${text.slice(0, 100)}...` : text;
+  }, [exhibitor.description]);
+
+  // ポラロイド・クラフト感のあるランダムな傾き（rotate-1 や -rotate-1）
   const rotations = [
-    "rotate-[1.2deg]",
-    "-rotate-[1deg]",
+    "rotate-1",
+    "-rotate-1",
     "rotate-[0.8deg]",
-    "-rotate-[1.5deg]",
-    "rotate-[1.5deg]",
-    "-rotate-[0.8deg]",
+    "-rotate-[0.6deg]",
+    "rotate-[1.2deg]",
+    "-rotate-[1.2deg]",
   ];
   const tiltClass = rotations[index % rotations.length];
+
+  // マスキングテープ風の装飾カラーバリエーション
+  const tapeStyles = [
+    "bg-amber-200/70 border-amber-300/60 -rotate-2",
+    "bg-emerald-200/70 border-emerald-300/60 rotate-2",
+    "bg-rose-200/70 border-rose-300/60 -rotate-1",
+    "bg-amber-300/65 border-amber-400/55 rotate-1",
+  ];
+  const tapeClass = tapeStyles[index % tapeStyles.length];
 
   return (
     <div
       onClick={onClick}
-      className={`group relative flex flex-col w-full bg-[#FDFBF7] rounded-lg cursor-pointer 
-                 transition-all duration-300 ease-out border-2 border-[#3A3530]
-                 shadow-[3px_3px_0px_0px_rgba(58,53,48,0.85)] hover:shadow-[5px_5px_0px_0px_rgba(58,53,48,1)]
-                 hover:-translate-y-1 ${tiltClass} hover:rotate-0 hover:scale-[1.02] p-1.5 sm:p-2.5`}
+      className={`group relative flex flex-col w-full aspect-square bg-white rounded-xl cursor-pointer 
+                 transition-all duration-300 ease-out border-2 border-[#2D2622]
+                 shadow-signboard hover:shadow-signboard-lg
+                 hover:-translate-y-1 ${tiltClass} hover:rotate-0 hover:scale-[1.02] 
+                 p-1.5 sm:p-2.5 overflow-hidden select-none`}
     >
-      {/* マスキングテープ風の装飾ワンポイント */}
-      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 sm:w-16 h-3.5 sm:h-5 masking-tape-amber z-10 -rotate-2 pointer-events-none opacity-80 rounded-xs border-dashed border-amber-300/40"></div>
+      {/* カードの縁・背景のマスキングテープ風ワンポイント装飾 */}
+      <div
+        className={`absolute -top-1.5 sm:-top-2 left-1/2 -translate-x-1/2 w-8 sm:w-14 h-3 sm:h-4 border border-dashed rounded-xs z-10 pointer-events-none shadow-2xs backdrop-blur-[0.5px] ${tapeClass}`}
+      />
 
-      {/* 写真エリア（ポラロイド風） */}
-      <div className="relative w-full aspect-[4/3] bg-[#FAF6F0] rounded-sm overflow-hidden border border-stone-200">
-        <Image
-          src={mainImage}
-          alt={exhibitor.name}
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-108"
-          fill
-          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
-        />
+      {/* 写真エリア（ポラロイド風 & ホバー/タップで拡大・回転） */}
+      <div className="relative w-full h-[52%] sm:h-[48%] bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex-shrink-0">
+        <div className="relative w-full h-full transition-transform duration-300 ease-out group-hover:scale-108 group-hover:rotate-1">
+          <Image
+            src={mainImage}
+            alt={exhibitor.name}
+            className="object-cover"
+            fill
+            sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
+          />
+        </div>
 
         {/* 写真枚数表示 */}
         {images.length > 1 && (
-          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-[#3A3530]/80 text-white text-[9px] sm:text-[11px] font-bold rounded-full flex items-center gap-0.5 shadow-2xs">
+          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-[#2D2622]/80 text-white text-[8px] sm:text-[10px] font-bold rounded-full flex items-center gap-0.5 shadow-2xs z-10">
             <span>📷</span>
             <span>{images.length}</span>
           </div>
         )}
       </div>
-      
+
       {/* 情報エリア */}
-      <div className="flex-grow flex flex-col justify-between pt-1.5 sm:pt-2.5 px-0.5">
+      <div className="flex-1 flex flex-col justify-between pt-1 sm:pt-1.5 overflow-hidden">
         <div>
-          {/* スタンプ風カテゴリバッジ */}
+          {/* 丸型・スタンプ風カテゴリバッジ */}
           {categories.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-1">
-              {categories.map((cat) => {
+            <div className="flex flex-wrap gap-0.5 sm:gap-1 mb-0.5 sm:mb-1 max-h-4 sm:max-h-5 overflow-hidden">
+              {categories.slice(0, 2).map((cat) => {
                 const catStyle = CATEGORY_STYLES[cat] || defaultStyles;
                 return (
                   <span
                     key={cat}
-                    className={`inline-block px-1.5 py-0.2 rounded-full text-[9px] sm:text-xs font-bold ${catStyle.badgeBg} ${catStyle.badgeText} border ${catStyle.border} shadow-2xs`}
+                    className={`inline-flex items-center px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-full text-[8px] sm:text-[10px] font-black border border-[#2D2622]/30 shadow-2xs whitespace-nowrap ${catStyle.badgeBg} ${catStyle.badgeText}`}
                   >
                     {cat}
                   </span>
@@ -86,15 +108,15 @@ export default function ExhibitorCard({ exhibitor, onClick, index = 0 }: Props) 
             </div>
           )}
 
-          {/* 出店者名 */}
-          <h3 className="font-extrabold text-xs sm:text-base text-[#2D2622] leading-tight line-clamp-1 group-hover:text-[#C86D51] transition-colors">
+          {/* 出店者名（スマホはコンパクトに1行・文字崩れ防止） */}
+          <h3 className="font-black text-[11px] sm:text-xs md:text-sm text-[#2D2622] leading-tight truncate group-hover:text-[#C86D51] transition-colors">
             {exhibitor.name}
           </h3>
 
-          {/* 紹介文（PC・タブレットで短く表示、スマホは簡潔に） */}
-          {exhibitor.description && (
-            <p className="text-[10px] sm:text-xs text-[#59483E] line-clamp-2 mt-1 leading-relaxed hidden sm:block">
-              {exhibitor.description}
+          {/* 出店者紹介文（PC表示のみ表示、100文字で切って「...」とする） */}
+          {truncatedDescription && (
+            <p className="hidden sm:block text-[10px] sm:text-xs text-[#59483E] line-clamp-2 mt-0.5 leading-snug">
+              {truncatedDescription}
             </p>
           )}
         </div>
