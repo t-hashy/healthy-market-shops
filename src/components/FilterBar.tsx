@@ -1,6 +1,6 @@
 "use client";
 
-import { FILTER_CATEGORIES, FilterCategory, CATEGORY_ICONS } from "../types";
+import { FILTER_CATEGORIES, FilterCategory } from "../types";
 
 type Props = {
   selectedFilter: FilterCategory;
@@ -23,9 +23,9 @@ const TAPE_CONFIGS: Record<
 > = {
   ALL: {
     bgActive: "bg-[#F0C987]",
-    bgInactive: "bg-[#F7E1B5]/85 hover:bg-[#F2D69E]",
+    bgInactive: "bg-[#F7E1B5] hover:bg-[#F2D69E]",
     borderActive: "border-[#8C5E24]",
-    borderInactive: "border-[#A07844]/60",
+    borderInactive: "border-[#A07844]",
     textColorActive: "text-[#3D250A]",
     textColorInactive: "text-[#543818]",
     rotation: "-rotate-2",
@@ -33,9 +33,9 @@ const TAPE_CONFIGS: Record<
   },
   農家: {
     bgActive: "bg-[#A7D49B]",
-    bgInactive: "bg-[#C4E6BB]/85 hover:bg-[#B3DCAB]",
+    bgInactive: "bg-[#C4E6BB] hover:bg-[#B3DCAB]",
     borderActive: "border-[#3A6B2F]",
-    borderInactive: "border-[#508044]/60",
+    borderInactive: "border-[#508044]",
     textColorActive: "text-[#1C3E14]",
     textColorInactive: "text-[#2A5220]",
     rotation: "rotate-1.5",
@@ -43,9 +43,9 @@ const TAPE_CONFIGS: Record<
   },
   飲食: {
     bgActive: "bg-[#F5A987]",
-    bgInactive: "bg-[#F9C7B2]/85 hover:bg-[#F6B69B]",
+    bgInactive: "bg-[#F9C7B2] hover:bg-[#F6B69B]",
     borderActive: "border-[#8E3B1C]",
-    borderInactive: "border-[#AB512F]/60",
+    borderInactive: "border-[#AB512F]",
     textColorActive: "text-[#4A1705]",
     textColorInactive: "text-[#6B2A10]",
     rotation: "-rotate-1",
@@ -53,9 +53,9 @@ const TAPE_CONFIGS: Record<
   },
   カフェ: {
     bgActive: "bg-[#D8BA9B]",
-    bgInactive: "bg-[#E6D2BD]/85 hover:bg-[#DFC4A9]",
+    bgInactive: "bg-[#E6D2BD] hover:bg-[#DFC4A9]",
     borderActive: "border-[#6E4E2E]",
-    borderInactive: "border-[#8C6946]/60",
+    borderInactive: "border-[#8C6946]",
     textColorActive: "text-[#33200F]",
     textColorInactive: "text-[#4E341E]",
     rotation: "rotate-2",
@@ -63,9 +63,9 @@ const TAPE_CONFIGS: Record<
   },
   クラフト: {
     bgActive: "bg-[#B4CCE4]",
-    bgInactive: "bg-[#CFDFF0]/85 hover:bg-[#BCD2E8]",
+    bgInactive: "bg-[#CFDFF0] hover:bg-[#BCD2E8]",
     borderActive: "border-[#335680]",
-    borderInactive: "border-[#4A6E99]/60",
+    borderInactive: "border-[#4A6E99]",
     textColorActive: "text-[#142942]",
     textColorInactive: "text-[#234164]",
     rotation: "-rotate-1.5",
@@ -98,13 +98,8 @@ export default function FilterBar({ selectedFilter, onFilterChange }: Props) {
                              : `${conf.bgInactive} ${conf.textColorInactive} shadow-[0_2px_4px_rgba(30,15,5,0.25)] hover:-translate-y-1 hover:scale-105 hover:rotate-0`
                          }`}
             >
-              {/* アイコン */}
-              <span className="text-xs sm:text-base flex-shrink-0 leading-none">
-                {CATEGORY_ICONS[category]}
-              </span>
-
-              {/* ラベル */}
-              <span className="text-[10px] sm:text-xs md:text-sm font-black truncate tracking-tight">
+              {/* ラベル（カテゴリ名のみ） */}
+              <span className="text-[11px] sm:text-xs md:text-sm font-black truncate tracking-wide">
                 {conf.label}
               </span>
 

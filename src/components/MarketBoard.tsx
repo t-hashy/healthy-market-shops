@@ -376,7 +376,7 @@ export default function MarketBoard() {
                       </div>
                       <div className="absolute inset-0 bg-black/25 group-hover:bg-black/15 transition-colors flex items-center justify-center">
                         <span className="bg-[#FAF6F0] text-[#2D2622] font-black text-[10px] sm:text-xs px-2 py-1 rounded-full border border-[#2D2622] shadow-xs flex items-center gap-0.5">
-                          <span>🔍</span>
+                          
                           <span>拡大</span>
                         </span>
                       </div>
@@ -400,7 +400,7 @@ export default function MarketBoard() {
                       </div>
                       <div className="absolute inset-0 bg-black/25 group-hover:bg-black/15 transition-colors flex items-center justify-center">
                         <span className="bg-[#FAF6F0] text-[#2D2622] font-black text-[10px] sm:text-xs px-2 py-1 rounded-full border border-[#2D2622] shadow-xs flex items-center gap-0.5">
-                          <span>🔍</span>
+                         
                           <span>拡大</span>
                         </span>
                       </div>
@@ -503,7 +503,7 @@ export default function MarketBoard() {
         <div className="relative z-10 py-5 sm:py-7 px-3 sm:px-6 text-center">
           <h2 className="font-title text-lg sm:text-2xl md:text-3xl font-black text-[#26170E] leading-snug sm:leading-relaxed tracking-wide flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
             <span className="inline-block whitespace-nowrap">こだわりの食べ物と手作りのぬくもりが集まる</span>
-            <span className="inline-block whitespace-nowrap">小さなマーケットです</span>
+            <span className="inline-block whitespace-nowrap">オーガニックマーケットです</span>
           </h2>
           <p className="font-sans text-xs sm:text-sm md:text-base font-medium text-[#3A2414] mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto">
             有機農家の新鮮な野菜、地元野菜を使ったご飯、ていねいに焼き上げたパンや焼き菓子、心を込めたハンドメイド作品。出店者さんとの会話を楽しみながら、お気に入りを見つけに来てください。
@@ -511,110 +511,127 @@ export default function MarketBoard() {
         </div>
       </div>
 
-      {/* 7. 出店者さんたち専用コルクボードセクション */}
+      {/* 7. 出店者さんたち専用 手描きイラスト風木枠＆コルクボード */}
       <section
-        className="corkboard-frame rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 md:p-8 relative my-8 sm:my-12 shadow-2xl overflow-visible"
+        className="wood-board-frame my-8 sm:my-14 overflow-visible"
         style={{
-          backgroundColor: '#b87b44',
-          backgroundImage: `
-            radial-gradient(ellipse at 50% 50%, rgba(220, 175, 115, 0.45) 0%, rgba(145, 95, 45, 0.5) 100%),
-            radial-gradient(circle at 15% 25%, rgba(70, 35, 10, 0.35) 2px, transparent 2.5px),
-            radial-gradient(circle at 72% 60%, rgba(60, 30, 10, 0.4) 1.5px, transparent 2px),
-            radial-gradient(circle at 38% 78%, rgba(255, 235, 195, 0.5) 2.5px, transparent 3px),
-            radial-gradient(circle at 88% 18%, rgba(255, 235, 195, 0.45) 2px, transparent 2.5px),
-            radial-gradient(circle at 25% 85%, rgba(80, 45, 15, 0.3) 2px, transparent 2.5px),
-            radial-gradient(circle at 55% 32%, rgba(60, 30, 10, 0.35) 2.5px, transparent 3px)
-          `,
-          backgroundSize: '100% 100%, 31px 37px, 43px 41px, 47px 53px, 37px 29px, 59px 61px, 23px 31px',
-          border: '14px solid #4a2c11',
-          boxShadow: 'inset 0 0 60px rgba(40, 15, 0, 0.7), inset 0 0 15px rgba(20, 10, 0, 0.6), 0 16px 36px -6px rgba(40, 20, 5, 0.5), 0 0 0 2px #2d1808',
+          backgroundColor: '#653b1c',
+          backgroundImage: 'repeating-linear-gradient(90deg, transparent 0px, transparent 36px, #4a260f 36px, #4a260f 38.5px, transparent 38.5px, transparent 78px, #7a4724 78px, #7a4724 80px)',
+          border: '4px solid #231104',
+          boxShadow: '4px 6px 0px #1a0b02',
         }}
       >
-        {/* コルクボードの吊り下げ金具装飾（上部左右） */}
-        <div className="absolute -top-6 left-10 sm:left-14 hidden sm:flex flex-col items-center pointer-events-none">
-          <div className="w-5 h-5 rounded-full border-2 border-[#8C6D46] bg-[#5C4028] shadow-xs"></div>
-          <div className="w-2 h-2.5 bg-[#3D2513]"></div>
-        </div>
-        <div className="absolute -top-6 right-10 sm:right-14 hidden sm:flex flex-col items-center pointer-events-none">
-          <div className="w-5 h-5 rounded-full border-2 border-[#8C6D46] bg-[#5C4028] shadow-xs"></div>
-          <div className="w-2 h-2.5 bg-[#3D2513]"></div>
-        </div>
+        {/* 手描きイラスト風の吊り下げ金具（上部左右） */}
+        <div className="brass-board-hanger left-8 sm:left-14 hidden sm:block" />
+        <div className="brass-board-hanger right-8 sm:right-14 hidden sm:block" />
 
-        {/* コルクボードの見出し（焦がした木板に白文字 ＆ コルクボードに鉄釘で打ち付けられたデザイン） */}
-        <div className="flex items-center justify-between mb-3 sm:mb-4 px-1 select-none">
-          <div className="relative inline-flex items-center gap-2.5 sm:gap-4 burnt-wood-sign px-4 sm:px-8 py-2.5 sm:py-3 rounded-lg -rotate-0.5">
-            {/* コルクボードに打ち付けられた無骨な黒鉄釘（左） */}
-            <div className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1A1816] border border-[#423E3A] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center flex-shrink-0">
-              <div className="w-1.5 h-0.5 bg-[#080706] rotate-45"></div>
-            </div>
-
-            {/* 焦がした木肌に白ペイント・チョークで書かれたような見出し文字 */}
-            <h2 className="font-title text-lg sm:text-2xl md:text-3xl font-black tracking-wider text-[#FAF5EB] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
-              出店者さんたち
-            </h2>
-
-            {/* 漆黒プレートの店舗数バッジ */}
-            <span className="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-[#0D0703]/90 text-[#FCEBD2] border border-[#52331C] shadow-inner">
-              {filteredExhibitors.length}店舗
-            </span>
-
-            {/* コルクボードに打ち付けられた無骨な黒鉄釘（右） */}
-            <div className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1A1816] border border-[#423E3A] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center flex-shrink-0">
-              <div className="w-1.5 h-0.5 bg-[#080706] -rotate-45"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* コルクボード内に貼られた、手ちぎりマステのカテゴリフィルター */}
-        <div className="mb-4 sm:mb-6">
-          <FilterBar
-            selectedFilter={filter}
-            onFilterChange={handleFilterChange}
-          />
-        </div>
-
-        {/* 8. 出店者カードグリッド（マステで貼られたメモ用紙カードたち） */}
-        {loading ? (
-          <div className="text-center py-16">
-            <p className="text-base sm:text-lg font-bold chalk-text animate-pulse">
-              出店者さんの情報を準備中です...
-            </p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12 max-w-xl mx-auto p-6 bg-amber-50 border-2 border-[#2D2622] rounded-2xl shadow-xs">
-            <p className="text-base font-bold text-amber-900">{error}</p>
-          </div>
-        ) : filteredExhibitors.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 sm:gap-4 md:gap-5">
-            {filteredExhibitors.map((exhibitor, idx) => (
-              <ExhibitorCard
-                key={exhibitor.id}
-                exhibitor={exhibitor}
-                onClick={() => handleCardClick(exhibitor)}
-                index={idx}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-[#FDFBF7] rounded-2xl border-2 border-[#2D2622] p-8 shadow-signboard-lg max-w-md mx-auto">
-            <p className="text-base text-[#2D2622] font-bold mb-2">
-              お探しの出店者さんが見つかりませんでした
-            </p>
-            <p className="text-xs text-[#59483E] mb-4">
-              キーワードやカテゴリを変更してお試しください
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setFilter('ALL');
+        {/* コルクボード内面（マットな手描きイラスト風コルク・光沢ゼロ） */}
+        <div
+          className="cork-board-surface"
+          style={{
+            backgroundColor: '#d6a165',
+            backgroundImage: `
+              radial-gradient(circle at 18% 22%, #945c25 1.5px, transparent 1.6px),
+              radial-gradient(circle at 72% 68%, #945c25 2px, transparent 2.1px),
+              radial-gradient(circle at 42% 78%, #945c25 1.5px, transparent 1.6px),
+              radial-gradient(circle at 82% 28%, #945c25 1.5px, transparent 1.6px),
+              radial-gradient(circle at 52% 38%, #945c25 2px, transparent 2.1px),
+              radial-gradient(circle at 28% 58%, #fae8c8 2px, transparent 2.1px),
+              radial-gradient(circle at 62% 82%, #fae8c8 2px, transparent 2.1px),
+              radial-gradient(circle at 32% 18%, #fae8c8 1.5px, transparent 1.6px),
+              radial-gradient(circle at 85% 48%, #fae8c8 1.5px, transparent 1.6px)
+            `,
+            backgroundSize: '34px 38px, 46px 50px, 54px 58px, 40px 36px, 62px 56px, 42px 46px, 50px 54px, 36px 40px, 56px 60px',
+            border: '2.5px solid #3d2008',
+            boxShadow: 'none',
+          }}
+        >
+          {/* コルクボードの見出し（手描き看板 ＆ 手描きイラスト画鋲で留められたデザイン） */}
+          <div className="flex items-center justify-between mb-3 sm:mb-4 px-1 select-none">
+            <div
+              className="relative inline-flex items-center gap-2.5 sm:gap-4 burnt-wood-sign px-4 sm:px-7 py-2 sm:py-3 rounded-xl -rotate-1 shadow-[3px_4px_0px_#120501]"
+              style={{
+                backgroundColor: '#3b1e0d',
+                backgroundImage: 'repeating-linear-gradient(90deg, transparent 0px, transparent 28px, #261206 28px, #261206 30.5px, transparent 30.5px, transparent 64px, #4e2812 64px, #4e2812 66px)',
+                border: '3px solid #1a0802',
+                boxShadow: '3px 4px 0px #120501',
               }}
-              className="text-xs font-extrabold text-white bg-[#C86D51] hover:bg-[#B35C41] px-4 py-2 rounded-full border-2 border-[#2D2622] shadow-signboard cursor-pointer"
             >
-              条件をリセットする
-            </button>
+              {/* コルクボードに刺さった手描きイラスト風の丸画鋲（左） */}
+              <div
+                className="antique-brass-pin !w-4 !h-4 sm:!w-5 sm:!h-5"
+                title="手描き画鋲"
+              />
+
+              {/* 木板にチョークで手描きされたような見出し文字 */}
+              <h2 className="font-title text-xl sm:text-2xl md:text-3xl font-black tracking-wider text-[#FAF5EB] drop-shadow-[1.5px_1.5px_0px_#120501]">
+                出店者
+              </h2>
+
+              {/* 黒板・タグ風の店舗数バッジ */}
+              <span className="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-[#180a03] text-[#FCEBD2] border-2 border-[#522f18] shadow-[1px_1px_0px_#120501]">
+                {filteredExhibitors.length}店舗
+              </span>
+
+              {/* コルクボードに刺さった手描きイラスト風の丸画鋲（右） */}
+              <div
+                className="antique-brass-pin !w-4 !h-4 sm:!w-5 sm:!h-5"
+                title="手描き画鋲"
+              />
+            </div>
           </div>
-        )}
+
+          {/* コルクボード内に貼られた、手ちぎりマステのカテゴリフィルター */}
+          <div className="mb-4 sm:mb-6">
+            <FilterBar
+              selectedFilter={filter}
+              onFilterChange={handleFilterChange}
+            />
+          </div>
+
+          {/* 8. 出店者カードグリッド（マステで貼られたメモ用紙カードたち） */}
+          {loading ? (
+            <div className="text-center py-16">
+              <p className="text-base sm:text-lg font-bold chalk-text animate-pulse">
+                出店者さんの情報を準備中です...
+              </p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 max-w-xl mx-auto p-6 bg-amber-50 border-2 border-[#2D2622] rounded-2xl shadow-xs">
+              <p className="text-base font-bold text-amber-900">{error}</p>
+            </div>
+          ) : filteredExhibitors.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 sm:gap-4 md:gap-5">
+              {filteredExhibitors.map((exhibitor, idx) => (
+                <ExhibitorCard
+                  key={exhibitor.id}
+                  exhibitor={exhibitor}
+                  onClick={() => handleCardClick(exhibitor)}
+                  index={idx}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-[#FDFBF7] rounded-2xl border-2 border-[#2D2622] p-8 shadow-signboard-lg max-w-md mx-auto">
+              <p className="text-base text-[#2D2622] font-bold mb-2">
+                お探しの出店者さんが見つかりませんでした
+              </p>
+              <p className="text-xs text-[#59483E] mb-4">
+                キーワードやカテゴリを変更してお試しください
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilter('ALL');
+                }}
+                className="text-xs font-extrabold text-white bg-[#C86D51] hover:bg-[#B35C41] px-4 py-2 rounded-full border-2 border-[#2D2622] shadow-signboard cursor-pointer"
+              >
+                条件をリセットする
+              </button>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* 出店者詳細モーダル（横スワイプ・横矢印ナビゲーション対応） */}

@@ -363,6 +363,7 @@ body {
     0% 40%,
     3.5px 20%
   );
+  opacity: 1 !important;
   transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -405,36 +406,27 @@ body {
 }
 
 /* -------------------------------------------------------------
- * 焦がした木板（焼杉・バーントウッドボード）
+ * 手描きイラスト風の木板看板（絵本風ウッドサイン）
+ * コルクボードにピン留めされた、素朴で温かい手描き木板
  * ----------------------------------------------------------- */
 .burnt-wood-sign {
-  background-color: #1e1108;
-  background-image: 
-    /* 焼杉の炭化木目・深い焦げ筋 */
-    repeating-linear-gradient(90deg, 
-      rgba(15, 7, 3, 0.96) 0px, 
-      rgba(38, 19, 8, 0.78) 4px, 
-      rgba(18, 9, 4, 0.96) 8px, 
-      rgba(55, 28, 12, 0.82) 13px, 
-      rgba(15, 7, 3, 0.96) 18px
-    ),
-    /* 表面の炭化ムラ・微細な凹凸 */
-    repeating-linear-gradient(0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.25) 2px,
-      rgba(0, 0, 0, 0.25) 3px
-    ),
-    /* 焦げのグラデーション */
-    radial-gradient(ellipse at 50% 50%, rgba(70, 36, 16, 0.35) 0%, rgba(10, 5, 2, 0.88) 100%),
-    linear-gradient(180deg, #2a160b 0%, #170b04 100%);
-  border: 3px solid #0f0602;
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.08),
-    inset 0 -2px 6px rgba(0, 0, 0, 0.9),
-    0 10px 22px rgba(15, 6, 2, 0.75),
-    0 2px 5px rgba(0, 0, 0, 0.6);
-  border-radius: 8px;
+  background-color: #3b1e0d !important;
+  /* 手描きの素朴な木目ライン（数本のサインペンタッチ） */
+  background-image: repeating-linear-gradient(90deg, 
+    transparent 0px, 
+    transparent 28px, 
+    #261206 28px, 
+    #261206 30.5px,
+    transparent 30.5px,
+    transparent 64px,
+    #4e2812 64px,
+    #4e2812 66px
+  ) !important;
+  border-radius: 12px;
+  /* 手描きの太い焦茶アウトライン */
+  border: 3px solid #1a0802 !important;
+  /* ぼかしゼロのイラスト特有のソリッドな手描きベタ影 */
+  box-shadow: 3px 4px 0px #120501 !important;
 }
 
 /* -------------------------------------------------------------
@@ -563,5 +555,158 @@ body {
   );
 }
 
+/* -------------------------------------------------------------
+ * 手描きイラスト風の木製額縁フレーム（ウッドフレーム）
+ * 光沢感・CG感を完全撤廃した、絵本のような手描き木枠
+ * ----------------------------------------------------------- */
+.wood-board-frame {
+  position: relative;
+  /* 温かみのあるマットなキャラメルブラウンのベタ塗り */
+  background-color: #653b1c !important;
+  /* サインペンで描いたような素朴な手描き木目ライン */
+  background-image: repeating-linear-gradient(90deg, 
+    transparent 0px, 
+    transparent 36px, 
+    #4a260f 36px, 
+    #4a260f 38.5px,
+    transparent 38.5px,
+    transparent 78px,
+    #7a4724 78px,
+    #7a4724 80px
+  ) !important;
+  padding: 10px;
+  border-radius: 18px;
+  /* 手描きのくっきりした濃い焦げ茶のアウトライン */
+  border: 4px solid #231104 !important;
+  /* イラスト特有のぼかしゼロのソリッドな手描き影（光沢グラデなし） */
+  box-shadow: 4px 6px 0px #1a0b02 !important;
+}
 
+@media (min-width: 640px) {
+  .wood-board-frame {
+    padding: 16px;
+    border-radius: 22px;
+    border-width: 4.5px !important;
+    box-shadow: 5px 7px 0px #1a0b02 !important;
+  }
+}
 
+/* -------------------------------------------------------------
+ * 手描きイラスト風のコルクボード面
+ * 光沢ゼロ！絵本のようにチョンチョンと描かれた素朴なマットコルク
+ * ----------------------------------------------------------- */
+.cork-board-surface {
+  position: relative;
+  /* 素朴で温かいマットなビスケットベージュ（光沢なし） */
+  background-color: #d6a165 !important;
+  /* イラストレーターがペンでチョンチョンと描いた手描きドット斑点 */
+  background-image: 
+    radial-gradient(circle at 18% 22%, #945c25 1.5px, transparent 1.6px),
+    radial-gradient(circle at 72% 68%, #945c25 2px, transparent 2.1px),
+    radial-gradient(circle at 42% 78%, #945c25 1.5px, transparent 1.6px),
+    radial-gradient(circle at 82% 28%, #945c25 1.5px, transparent 1.6px),
+    radial-gradient(circle at 52% 38%, #945c25 2px, transparent 2.1px),
+    radial-gradient(circle at 28% 58%, #fae8c8 2px, transparent 2.1px),
+    radial-gradient(circle at 62% 82%, #fae8c8 2px, transparent 2.1px),
+    radial-gradient(circle at 32% 18%, #fae8c8 1.5px, transparent 1.6px),
+    radial-gradient(circle at 85% 48%, #fae8c8 1.5px, transparent 1.6px) !important;
+  background-size: 
+    34px 38px, 46px 50px, 54px 58px, 40px 36px, 62px 56px,
+    42px 46px, 50px 54px, 36px 40px, 56px 60px !important;
+  border-radius: 10px;
+  /* 手描きの内枠線（光沢シャドウは一切なし） */
+  border: 2.5px solid #3d2008 !important;
+  box-shadow: none !important;
+  padding: 14px 10px;
+}
+
+@media (min-width: 640px) {
+  .cork-board-surface {
+    border-radius: 12px;
+    padding: 22px 18px;
+    border-width: 3px !important;
+  }
+}
+
+/* -------------------------------------------------------------
+ * 手描きイラスト風プッシュピン（画鋲）
+ * 光沢ゼロ！絵本・セル画タッチのぽってり丸い手描き画鋲
+ * ----------------------------------------------------------- */
+.antique-brass-pin {
+  position: relative;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  opacity: 1 !important;
+  /* 手描きアニメ・イラスト風のセル塗り（上半分が明るいイエロー、下半分が影のマスタード） */
+  background: linear-gradient(180deg, #f5be38 0%, #f5be38 48%, #cf9215 48%, #cf9215 100%) !important;
+  /* 手描きのくっきりした焦げ茶のアウトラインと、ぼかしゼロの小さな手描き影 */
+  border: 2px solid #1a0802 !important;
+  box-shadow: 2px 2px 0px #150601 !important;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .antique-brass-pin {
+    width: 21px;
+    height: 21px;
+    border-width: 2.5px !important;
+    box-shadow: 2px 2.5px 0px #150601 !important;
+  }
+}
+
+/* ピンの手描きチョンツヤ（イラストレーターが描いた小さな白い点） */
+.antique-brass-pin::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* -------------------------------------------------------------
+ * 手描きイラスト風の吊り下げ金具（アイアンリング）
+ * ----------------------------------------------------------- */
+.brass-board-hanger {
+  position: absolute;
+  top: -14px;
+  width: 20px;
+  height: 18px;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.brass-board-hanger::before {
+  /* 手描き風のシンプルな黒アイアンリング */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 12px;
+  border: 2.5px solid #231104 !important;
+  border-bottom: none !important;
+  border-radius: 8px 8px 0 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.brass-board-hanger::after {
+  /* 木枠に留める台座金具 */
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 8px;
+  background: #3c1e08 !important;
+  border-radius: 2px;
+  border: 1.5px solid #1a0c03 !important;
+  box-shadow: none !important;
+}
