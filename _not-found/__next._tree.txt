@@ -1,3 +1,3 @@
 :HL["/healthy-market-shops/_next/static/chunks/a6063a17b1a2f80c.css","style"]
-:HL["/healthy-market-shops/_next/static/chunks/c6bd383add1db34e.css","style"]
-0:{"buildId":"ITfESPvBiXM1WyH_0Tkdm","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"/_not-found","paramType":null,"paramKey":"/_not-found","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+:HL["/healthy-market-shops/_next/static/chunks/90612230c49827ec.css","style"]
+0:{"buildId":"pcOIFLQwUnAQ1Kb7C-3bB","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"/_not-found","paramType":null,"paramKey":"/_not-found","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
