@@ -11,6 +11,7 @@ export type Exhibitor = {
   marketDays?: string;
   description?: string; // Unified from shortDesc/longDesc
   imageUrl?: string; // 互換性（メイン画像）
+  thumbnailUrl?: string; // 一覧カード専用サムネイル（横長クロップ画像）
   imageUrls?: string[]; // 複数画像（最大5枚）
   address?: string; // Re-adding
   website?: string; // 互換性
@@ -29,8 +30,10 @@ export type MarketEvent = {
   location: string; // 例: "世田谷公園 けやき広場"
   isUpcoming?: boolean; // 次回開催フラグ
   order?: number; // ソート用（大きいほど新しい等）
-  flyerUrl?: string; // チラシJPG画像のURL
+  flyerUrl?: string; // チラシJPG画像のURL（互換性用）
   flyerImageUrl?: string; // 互換性用
+  flyerUrlFront?: string; // チラシ（オモテ面）画像URL
+  flyerUrlBack?: string; // チラシ（ウラ面）画像URL
   createdAt?: string;
 };
 
@@ -54,9 +57,9 @@ export type FilterCategory = (typeof FILTER_CATEGORIES)[number];
 export const CATEGORY_ICONS: Record<FilterCategory, string> = {
   ALL: "🌾",
   農家: "🥬",
-  飲食: "🍲",
+  飲食: "🥙",
   カフェ: "☕",
-  クラフト: "🧵",
+  クラフト: "🧺",
 };
 
 // カテゴリごとのスタンプ風アースカラースタイル

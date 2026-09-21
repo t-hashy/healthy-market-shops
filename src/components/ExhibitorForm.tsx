@@ -17,6 +17,7 @@ import {
   sortEventsAscending,
 } from '../types';
 import Image from 'next/image';
+import ImageCropperModal from './ImageCropperModal';
 
 type Props = {
   isOpen: boolean;
@@ -60,6 +61,16 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [availableEvents, setAvailableEvents] = useState<MarketEvent[]>([]);
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
+  // サムネイル切り取り（クロッパー）モーダル用ステート
+  const [cropperTarget, setCropperTarget] = useState<{
+    imageSrc: string;
+    targetType: 'new' | 'existing';
+    idOrIndex: string | number;
+  } | null>(null);
+  // 一覧カード専用サムネイル（横長 2:1）ステート
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
   // 開催回データの取得（名前昇順でソート）
@@ -103,11 +114,17 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
       setLinks(loadedLinks.length > 0 ? loadedLinks : [{ title: '', url: '' }]);
       setExistingImages(getExhibitorImages(exhibitorToEdit));
       setSelectedEventIds(exhibitorToEdit.eventIds || []);
+      setThumbnailUrl(exhibitorToEdit.thumbnailUrl || null);
+      setThumbnailPreviewUrl(exhibitorToEdit.thumbnailUrl || null);
+      setThumbnailFile(null);
     } else {
       setFormData({});
       setSelectedCategories([]);
       setLinks([{ title: 'インスタグラム', url: '' }]);
       setExistingImages([]);
+      setThumbnailUrl(null);
+      setThumbnailPreviewUrl(null);
+      setThumbnailFile(null);
       // 新規の場合は次回開催があればデフォルト選択
       const upcoming = availableEvents.find((e) => e.isUpcoming);
       setSelectedEventIds(upcoming ? [upcoming.id] : []);
@@ -162,6 +179,21 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
 
     setNewImageFiles((prev) => [...prev, ...newItems]);
     e.target.value = '';
+
+    // 1枚目画像がまだサムネイル切り取りされていない場合、自動で横長サムネイル切り取り枠を開く
+    if (newItems.length > 0 && !thumbnailPreviewUrl && existingImages.length === 0) {
+      setCropperTarget({
+        imageSrc: newItems[0].previewUrl,
+        targetType: 'new',
+        idOrIndex: newItems[0].id,
+      });
+    }
+  };
+
+  // サムネイル切り取り完了ハンドラ（元画像は一切触らず、サムネイルファイル・プレビューのみ更新）
+  const handleCropComplete = (croppedFile: File, croppedPreviewUrl: string) => {
+    setThumbnailFile(croppedFile);
+    setThumbnailPreviewUrl(croppedPreviewUrl);
   };
 
   // 既存画像の削除
@@ -225,7 +257,7 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
     try {
       const savedName = formData.name.trim();
 
-      // 1. 新規画像ファイルをFirebase Storageにアップロード
+      // 1. 新規画像ファイルをFirebase Storageにアップロード（元画像・未加工）
       const newlyUploadedUrls: string[] = [];
       for (const item of newImageFiles) {
         const imagePath = `exhibitors/${Date.now()}_${generateRandomString()}_${item.file.name}`;
@@ -237,6 +269,22 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
 
       // 全画像URL（既存 + 新規アップロード）
       const finalImageUrls = [...existingImages, ...newlyUploadedUrls].slice(0, MAX_IMAGES);
+
+      // 1-2. 一覧カード用サムネイル画像のアップロード
+      let finalThumbnailUrl = thumbnailUrl || '';
+      if (thumbnailFile) {
+        const thumbPath = `thumbnails/${Date.now()}_${generateRandomString()}.jpg`;
+        const thumbRef = ref(storage, thumbPath);
+        const snap = await uploadBytes(thumbRef, thumbnailFile);
+        finalThumbnailUrl = await getDownloadURL(snap.ref);
+      } else if (!thumbnailPreviewUrl) {
+        finalThumbnailUrl = '';
+      }
+
+      // サムネイルが未設定の場合は1枚目画像をフォールバック
+      if (!finalThumbnailUrl && finalImageUrls.length > 0) {
+        finalThumbnailUrl = finalImageUrls[0];
+      }
 
       // 削除された既存画像をStorageから安全に削除（失敗しても処理は続行）
       for (const oldUrl of removedImageUrls) {
@@ -263,6 +311,7 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
         address: formData.address?.trim() || '',
         imageUrls: finalImageUrls,
         imageUrl: finalImageUrls[0] || '', // 互換性用メイン画像
+        thumbnailUrl: finalThumbnailUrl, // 一覧カード用サムネイル（横長 2:1）
         links: cleanLinks,
         website: cleanLinks.find((l) => l.title.includes('ウェブ') || l.title.includes('HP'))?.url || '',
         isHidden: !!formData.isHidden,
@@ -285,6 +334,9 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
         setExistingImages([]);
         setNewImageFiles([]);
         setRemovedImageUrls([]);
+        setThumbnailUrl(null);
+        setThumbnailPreviewUrl(null);
+        setThumbnailFile(null);
         // 次回開催回があれば次回のみチェック維持
         const upcoming = availableEvents.find((e) => e.isUpcoming);
         setSelectedEventIds(upcoming ? [upcoming.id] : []);
@@ -484,7 +536,7 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
                   出店画像 <span className="text-xs font-normal text-stone-500">（最大5枚まで）</span>
                 </label>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  1枚目が一覧カードのメイン（表紙）画像になります。
+                  1枚目が一覧カードのメイン（表紙）画像になります。「✂️ 切り取り」ボタンでサムネイルの表示範囲を自由に調整できます。
                 </p>
               </div>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -505,7 +557,21 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
                       メイン
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCropperTarget({
+                          imageSrc: url,
+                          targetType: 'existing',
+                          idOrIndex: idx,
+                        })
+                      }
+                      className="text-[10px] font-bold bg-white text-stone-900 px-2 py-0.5 rounded shadow hover:bg-stone-100 flex items-center gap-0.5"
+                    >
+                      <span>✂️</span>
+                      <span>切り取り</span>
+                    </button>
                     {idx > 0 && (
                       <button
                         type="button"
@@ -540,7 +606,21 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
                     <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-bold px-1 rounded">
                       NEW
                     </div>
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCropperTarget({
+                            imageSrc: item.previewUrl,
+                            targetType: 'new',
+                            idOrIndex: item.id,
+                          })
+                        }
+                        className="text-[10px] font-bold bg-white text-stone-900 px-2 py-0.5 rounded shadow hover:bg-stone-100 flex items-center gap-0.5"
+                      >
+                        <span>✂️</span>
+                        <span>切り取り</span>
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleRemoveNewFile(item.id)}
@@ -568,6 +648,102 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
                     className="hidden"
                   />
                 </label>
+              )}
+            </div>
+
+            {/* 一覧カード専用サムネイル（横長 2:1）プレビュー・調整エリア */}
+            <div className="mt-4 pt-3 border-t border-stone-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <div>
+                  <span className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+                    <span>✂️ 一覧カード用サムネイル</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                      横長 2:1
+                    </span>
+                  </span>
+                  <p className="text-[11px] text-stone-500 mt-0.5">
+                    出店者一覧カードにピッタリ収まる横長比率で切り取ります（詳細モーダルでは元の全体画像が表示されます）。
+                  </p>
+                </div>
+              </div>
+
+              {thumbnailPreviewUrl ? (
+                <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-stone-200">
+                  <div className="relative w-40 sm:w-48 aspect-[2/1] rounded-lg overflow-hidden border-2 border-amber-400 shadow-xs flex-shrink-0 bg-stone-100">
+                    <Image
+                      src={thumbnailPreviewUrl}
+                      alt="サムネイルプレビュー"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute top-1 left-1 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
+                      サムネイル
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5 text-xs">
+                    <div className="text-stone-700 font-bold">
+                      横長サムネイル設定済み
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const mainSrc =
+                            existingImages[0] ||
+                            newImageFiles[0]?.previewUrl ||
+                            thumbnailPreviewUrl;
+                          if (mainSrc) {
+                            setCropperTarget({
+                              imageSrc: mainSrc,
+                              targetType: existingImages[0] ? 'existing' : 'new',
+                              idOrIndex: 0,
+                            });
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 rounded-lg font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <span>✂️</span>
+                        <span>位置を再調整</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setThumbnailFile(null);
+                          setThumbnailPreviewUrl(null);
+                          setThumbnailUrl(null);
+                        }}
+                        className="px-2.5 py-1 text-stone-500 hover:text-rose-600 hover:bg-rose-50 border border-stone-200 rounded-lg transition-colors cursor-pointer"
+                      >
+                        リセット
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-3 bg-stone-100/80 rounded-xl border border-dashed border-stone-300 text-xs text-stone-600">
+                  <span className="text-[11px]">
+                    ※サムネイル未設定（出店者カードでは1枚目の写真の中央が自動表示されます）
+                  </span>
+                  {(existingImages.length > 0 || newImageFiles.length > 0) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const firstSrc = existingImages[0] || newImageFiles[0]?.previewUrl;
+                        if (firstSrc) {
+                          setCropperTarget({
+                            imageSrc: firstSrc,
+                            targetType: existingImages[0] ? 'existing' : 'new',
+                            idOrIndex: 0,
+                          });
+                        }
+                      }}
+                      className="px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 cursor-pointer shadow-xs flex items-center gap-1"
+                    >
+                      <span>✂️</span>
+                      <span>1枚目から切り取る</span>
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -740,6 +916,14 @@ export default function ExhibitorForm({ isOpen, onClose, exhibitorToEdit, existi
           </div>
         </form>
       </div>
+
+      {/* サムネイル切り取り（クロッパー）モーダル */}
+      <ImageCropperModal
+        isOpen={Boolean(cropperTarget)}
+        imageSrc={cropperTarget?.imageSrc || null}
+        onClose={() => setCropperTarget(null)}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

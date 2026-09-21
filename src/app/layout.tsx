@@ -9,8 +9,8 @@ const notoSansJp = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "ヘルシーマーケット出店者紹介",
-  description: "オーガニックマルシェ「ヘルシーマーケット」の素敵な出店者さんをご紹介します。",
+  title: "SATOYAMAヘルシーマーケット 出店者紹介",
+  description: "オーガニックマルシェ「SATOYAMAヘルシーマーケット」の素敵な出店者さんをご紹介します。",
 };
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${notoSansJp.className} bg-[#FAF8F5] text-[#2D2A26] antialiased min-h-screen selection:bg-emerald-100 selection:text-emerald-900`}
+        className={`${notoSansJp.className} text-[#2D2A26] antialiased min-h-screen selection:bg-amber-200 selection:text-stone-900`}
       >
         <AuthProvider>
           <main>{children}</main>

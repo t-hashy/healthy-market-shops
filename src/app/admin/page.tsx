@@ -42,7 +42,8 @@ export default function AdminPage() {
 
   return (
     <AuthGuard>
-      <div className="container mx-auto p-4 sm:p-6 pt-20 max-w-7xl">
+      <div className="min-h-screen bg-[#FAF8F5] text-stone-900 pb-20">
+        <div className="container mx-auto p-4 sm:p-6 pt-16 max-w-7xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -129,6 +130,7 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+    </div>
     </AuthGuard>
   );
 }

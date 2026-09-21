@@ -12,7 +12,8 @@ import {
   deleteDoc,
   writeBatch,
 } from 'firebase/firestore';
-import { db } from '../utils/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../utils/firebase';
 import { Exhibitor, MarketEvent, CATEGORY_STYLES, getExhibitorCategories, sortEventsAscending } from '../types';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -45,6 +46,17 @@ export default function EventManager() {
   // フィルタ・検索
   const [searchKeyword, setSearchKeyword] = useState('');
   const [filterParticipation, setFilterParticipation] = useState<'all' | 'joined' | 'not_joined'>('all');
+
+  // チラシ画像 (Firebase Storage) アップロード用状態（オモテ面 & ウラ面）
+  const [flyerFrontFile, setFlyerFrontFile] = useState<File | null>(null);
+  const [flyerFrontPreviewUrl, setFlyerFrontPreviewUrl] = useState<string | null>(null);
+  const [isFlyerFrontRemoved, setIsFlyerFrontRemoved] = useState(false);
+
+  const [flyerBackFile, setFlyerBackFile] = useState<File | null>(null);
+  const [flyerBackPreviewUrl, setFlyerBackPreviewUrl] = useState<string | null>(null);
+  const [isFlyerBackRemoved, setIsFlyerBackRemoved] = useState(false);
+
+  const [isUploadingFlyer, setIsUploadingFlyer] = useState(false);
 
   const {user, loading} = useAuth();
 
@@ -132,12 +144,19 @@ export default function EventManager() {
   const handleOpenEventModal = (event?: MarketEvent) => {
     if (event) {
       setEventToEdit(event);
+      const front = event.flyerUrlFront || event.flyerUrl || event.flyerImageUrl || '';
+      const back = event.flyerUrlBack || '';
       setEventFormData({
         name: event.name,
         date: event.date,
         location: event.location,
         isUpcoming: !!event.isUpcoming,
+        flyerUrl: front,
+        flyerUrlFront: front,
+        flyerUrlBack: back,
       });
+      setFlyerFrontPreviewUrl(front || null);
+      setFlyerBackPreviewUrl(back || null);
     } else {
       setEventToEdit(null);
       setEventFormData({
@@ -145,13 +164,86 @@ export default function EventManager() {
         date: '',
         location: '',
         isUpcoming: events.length === 0, // 初回なら自動で次回ON
+        flyerUrl: '',
+        flyerUrlFront: '',
+        flyerUrlBack: '',
       });
+      setFlyerFrontPreviewUrl(null);
+      setFlyerBackPreviewUrl(null);
     }
+    setFlyerFrontFile(null);
+    setIsFlyerFrontRemoved(false);
+    setFlyerBackFile(null);
+    setIsFlyerBackRemoved(false);
     setEventModalError(null);
     setIsEventModalOpen(true);
   };
 
-  // 開催回の保存
+  // チラシ（オモテ面）ファイル選択ハンドラ
+  const handleFlyerFrontChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setEventModalError('オモテ面の画像ファイル（JPG, PNGなど）を選択してください。');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setEventModalError('オモテ面のファイルサイズは15MB以下にしてください。');
+      return;
+    }
+
+    setFlyerFrontFile(file);
+    setIsFlyerFrontRemoved(false);
+    setEventModalError(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFlyerFrontPreviewUrl(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // チラシ（オモテ面）削除ハンドラ
+  const handleRemoveFlyerFront = () => {
+    setFlyerFrontFile(null);
+    setFlyerFrontPreviewUrl(null);
+    setIsFlyerFrontRemoved(true);
+  };
+
+  // チラシ（ウラ面）ファイル選択ハンドラ
+  const handleFlyerBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setEventModalError('ウラ面の画像ファイル（JPG, PNGなど）を選択してください。');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setEventModalError('ウラ面のファイルサイズは15MB以下にしてください。');
+      return;
+    }
+
+    setFlyerBackFile(file);
+    setIsFlyerBackRemoved(false);
+    setEventModalError(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFlyerBackPreviewUrl(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // チラシ（ウラ面）削除ハンドラ
+  const handleRemoveFlyerBack = () => {
+    setFlyerBackFile(null);
+    setFlyerBackPreviewUrl(null);
+    setIsFlyerBackRemoved(true);
+  };
+
+  // 開催回の保存（オモテ面・ウラ面のチラシ画像をFirebase Storageへアップロード）
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventFormData.name?.trim()) {
@@ -173,6 +265,34 @@ export default function EventManager() {
     try {
       const isUpcoming = !!eventFormData.isUpcoming;
 
+      if (flyerFrontFile || flyerBackFile) {
+        setIsUploadingFlyer(true);
+      }
+
+      // 1. オモテ面画像のアップロード処理
+      let finalFrontUrl = eventFormData.flyerUrlFront || eventFormData.flyerUrl || '';
+      if (flyerFrontFile) {
+        const ext = flyerFrontFile.name.split('.').pop() || 'jpg';
+        const flyerPath = `flyers/${Date.now()}_front_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+        const flyerRef = ref(storage, flyerPath);
+        const snapshot = await uploadBytes(flyerRef, flyerFrontFile);
+        finalFrontUrl = await getDownloadURL(snapshot.ref);
+      } else if (isFlyerFrontRemoved) {
+        finalFrontUrl = '';
+      }
+
+      // 2. ウラ面画像のアップロード処理
+      let finalBackUrl = eventFormData.flyerUrlBack || '';
+      if (flyerBackFile) {
+        const ext = flyerBackFile.name.split('.').pop() || 'jpg';
+        const flyerPath = `flyers/${Date.now()}_back_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+        const flyerRef = ref(storage, flyerPath);
+        const snapshot = await uploadBytes(flyerRef, flyerBackFile);
+        finalBackUrl = await getDownloadURL(snapshot.ref);
+      } else if (isFlyerBackRemoved) {
+        finalBackUrl = '';
+      }
+
       // もしこの回を「次回開催」にする場合、他の全回の isUpcoming を false に更新
       if (isUpcoming) {
         const batch = writeBatch(db);
@@ -184,19 +304,22 @@ export default function EventManager() {
         await batch.commit();
       }
 
+      const eventPayload = {
+        name: eventFormData.name.trim(),
+        date: eventFormData.date.trim(),
+        location: eventFormData.location.trim(),
+        isUpcoming,
+        flyerUrl: finalFrontUrl, // 互換性
+        flyerImageUrl: finalFrontUrl, // 互換性
+        flyerUrlFront: finalFrontUrl,
+        flyerUrlBack: finalBackUrl,
+      };
+
       if (eventToEdit) {
-        await updateDoc(doc(db, 'marketEvents', eventToEdit.id), {
-          name: eventFormData.name.trim(),
-          date: eventFormData.date.trim(),
-          location: eventFormData.location.trim(),
-          isUpcoming,
-        });
+        await updateDoc(doc(db, 'marketEvents', eventToEdit.id), eventPayload);
       } else {
         const newDoc = await addDoc(collection(db, 'marketEvents'), {
-          name: eventFormData.name.trim(),
-          date: eventFormData.date.trim(),
-          location: eventFormData.location.trim(),
-          isUpcoming,
+          ...eventPayload,
           createdAt: new Date().toISOString(),
         });
         setSelectedEventId(newDoc.id);
@@ -209,6 +332,7 @@ export default function EventManager() {
       setEventModalError(`保存に失敗しました: ${msg}`);
     } finally {
       setIsSubmittingEvent(false);
+      setIsUploadingFlyer(false);
     }
   };
 
@@ -444,6 +568,27 @@ export default function EventManager() {
                           出店登録店舗: <strong className="text-stone-900">{count}</strong> 店
                         </span>
                       </div>
+                      {(() => {
+                        const hasFront = !!(ev.flyerUrlFront || ev.flyerUrl || ev.flyerImageUrl);
+                        const hasBack = !!ev.flyerUrlBack;
+                        if (hasFront && hasBack) {
+                          return (
+                            <div className="flex items-center gap-1.5 pt-0.5 text-[11px] font-bold text-emerald-700">
+                              <span>🖼️</span>
+                              <span>チラシ（表・裏 登録済）</span>
+                            </div>
+                          );
+                        }
+                        if (hasFront) {
+                          return (
+                            <div className="flex items-center gap-1.5 pt-0.5 text-[11px] font-bold text-amber-700">
+                              <span>🖼️</span>
+                              <span>チラシ（表のみ登録済）</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   </div>
 
@@ -749,7 +894,7 @@ export default function EventManager() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-slide-up-fade"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto animate-slide-up-fade"
           >
             <div className="flex justify-between items-center mb-5 pb-3 border-b border-stone-100">
               <h3 className="text-lg font-bold text-stone-900">
@@ -868,6 +1013,128 @@ export default function EventManager() {
                 />
               </div>
 
+              {/* イベントチラシ画像 (オモテ面 & ウラ面) アップロード */}
+              <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-stone-800">
+                    イベントチラシ画像 (オモテ面 & ウラ面)
+                  </label>
+                  <p className="text-[11px] text-stone-500 mt-0.5">
+                    チラシの表・裏それぞれの画像（JPG/PNG）をアップロードできます。トップページでは両方の面を原寸で閲覧可能になります。
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* オモテ面 */}
+                  <div className="bg-white p-3 rounded-xl border border-stone-200 flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-[#C86D51]">📄 チラシ（オモテ面）</span>
+                      {flyerFrontPreviewUrl && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveFlyerFront}
+                          className="text-[11px] text-rose-600 hover:underline cursor-pointer font-medium"
+                        >
+                          削除
+                        </button>
+                      )}
+                    </div>
+
+                    {flyerFrontPreviewUrl ? (
+                      <div className="space-y-2">
+                        <div className="relative w-full h-36 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex items-center justify-center">
+                          <img
+                            src={flyerFrontPreviewUrl}
+                            alt="オモテ面プレビュー"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] text-stone-500 truncate max-w-[110px]">
+                            {flyerFrontFile ? flyerFrontFile.name : '登録済み'}
+                          </span>
+                          <label className="text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-0.5 rounded cursor-pointer font-bold shadow-2xs">
+                            変更
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFlyerFrontChange}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-stone-300 hover:border-[#C86D51] rounded-lg cursor-pointer bg-stone-50/50 hover:bg-orange-50/20 transition-all p-2 text-center">
+                        <span className="text-xl mb-1">🖼️</span>
+                        <span className="text-xs font-bold text-stone-700">オモテ面を選択</span>
+                        <span className="text-[10px] text-stone-400 mt-0.5">JPG / PNG (最大15MB)</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFlyerFrontChange}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                  {/* ウラ面 */}
+                  <div className="bg-white p-3 rounded-xl border border-stone-200 flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-[#4A6B5D]">📑 チラシ（ウラ面）</span>
+                      {flyerBackPreviewUrl && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveFlyerBack}
+                          className="text-[11px] text-rose-600 hover:underline cursor-pointer font-medium"
+                        >
+                          削除
+                        </button>
+                      )}
+                    </div>
+
+                    {flyerBackPreviewUrl ? (
+                      <div className="space-y-2">
+                        <div className="relative w-full h-36 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex items-center justify-center">
+                          <img
+                            src={flyerBackPreviewUrl}
+                            alt="ウラ面プレビュー"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] text-stone-500 truncate max-w-[110px]">
+                            {flyerBackFile ? flyerBackFile.name : '登録済み'}
+                          </span>
+                          <label className="text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-0.5 rounded cursor-pointer font-bold shadow-2xs">
+                            変更
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFlyerBackChange}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-stone-300 hover:border-[#4A6B5D] rounded-lg cursor-pointer bg-stone-50/50 hover:bg-emerald-50/20 transition-all p-2 text-center">
+                        <span className="text-xl mb-1">🖼️</span>
+                        <span className="text-xs font-bold text-stone-700">ウラ面を選択</span>
+                        <span className="text-[10px] text-stone-400 mt-0.5">JPG / PNG (最大15MB)</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFlyerBackChange}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {eventModalError && (
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs">
                   {eventModalError}
@@ -879,16 +1146,23 @@ export default function EventManager() {
                   type="button"
                   onClick={() => setIsEventModalOpen(false)}
                   disabled={isSubmittingEvent}
-                  className="py-2 px-4 border border-stone-300 rounded-xl text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 transition-colors"
+                  className="py-2 px-4 border border-stone-300 rounded-xl text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 transition-colors cursor-pointer"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingEvent}
-                  className="py-2 px-5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow flex items-center gap-1.5"
+                  className="py-2 px-5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  {isSubmittingEvent ? '保存中...' : '保存する'}
+                  {isSubmittingEvent ? (
+                    <>
+                      <span className="animate-spin text-sm">⏳</span>
+                      <span>{isUploadingFlyer ? 'チラシを送信中...' : '保存中...'}</span>
+                    </>
+                  ) : (
+                    '保存する'
+                  )}
                 </button>
               </div>
             </form>
