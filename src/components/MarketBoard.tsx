@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import {
@@ -31,17 +32,18 @@ export default function MarketBoard() {
   const [selectedEventId, setSelectedEventId] = useState<string>('INIT');
   const [selectedExhibitor, setSelectedExhibitor] = useState<Exhibitor | null>(null);
 
+  // チラシ（JPG画像）拡大表示モーダル用状態
+  const [activeFlyerUrl, setActiveFlyerUrl] = useState<string | null>(null);
+
   // スマホ用モーダル状態
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileEventFilterOpen, setIsMobileEventFilterOpen] = useState(false);
-  // スクロール状態（上部追従バーの表示用）
   const [isScrolled, setIsScrolled] = useState(false);
 
   // スクロール検知
   useEffect(() => {
     const handleScroll = () => {
-      // 画面をスクロールしたら上部コンパクト追従バーを表示
-      setIsScrolled(window.scrollY > 120);
+      setIsScrolled(window.scrollY > 150);
     };
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -70,7 +72,7 @@ export default function MarketBoard() {
     return () => unsubscribe();
   }, []);
 
-  // 2. 開催回データの購読（名前の昇順でソート）
+  // 2. 開催回データの購読
   useEffect(() => {
     const q = query(collection(db, "marketEvents"));
     const unsubscribe = onSnapshot(
@@ -83,7 +85,6 @@ export default function MarketBoard() {
         const sorted = sortEventsAscending(list);
         setEvents(sorted);
 
-        // 初期選択: 「次回」イベントがあればそれをデフォルト選択、なければ全店舗
         setSelectedEventId((prev) => {
           if (prev !== 'INIT') return prev;
           const upcoming = sorted.find((e) => e.isUpcoming);
@@ -98,7 +99,7 @@ export default function MarketBoard() {
     return () => unsubscribe();
   }, []);
 
-  // 次回開催回（最新またはisUpcoming）
+  // 次回開催回
   const upcomingEvent = useMemo(() => {
     return events.find((e) => e.isUpcoming) || events[0] || null;
   }, [events]);
@@ -109,25 +110,22 @@ export default function MarketBoard() {
     return events.find((e) => e.id === selectedEventId) || null;
   }, [events, selectedEventId]);
 
-  // 過去の開催回（次回イベント以外の回）
+  // 過去の開催回
   const pastEvents = useMemo(() => {
     if (!upcomingEvent) return events;
     return events.filter((e) => e.id !== upcomingEvent.id);
   }, [events, upcomingEvent]);
 
-  // 出店者の絞り込み（非表示除外、開催回フィルタ、カテゴリフィルタ）
+  // 出店者の絞り込み
   const filteredExhibitors = useMemo(() => {
-    // 1. 非表示フラグ除外
     let list = exhibitors.filter((e) => !e.isHidden);
 
-    // 2. 開催回フィルタ
     if (selectedEventId !== 'ALL' && selectedEventId !== 'INIT') {
       list = list.filter(
         (e) => Array.isArray(e.eventIds) && e.eventIds.includes(selectedEventId)
       );
     }
 
-    // 3. カテゴリフィルタ
     if (filter !== "ALL") {
       list = list.filter((exhibitor) => {
         const categories = getExhibitorCategories(exhibitor);
@@ -135,7 +133,6 @@ export default function MarketBoard() {
       });
     }
 
-    // 4. 出店者名検索フィルタ
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((exhibitor) =>
@@ -150,15 +147,17 @@ export default function MarketBoard() {
   const handleCardClick = (exhibitor: Exhibitor) => setSelectedExhibitor(exhibitor);
   const handleCloseModal = () => setSelectedExhibitor(null);
 
-  // ポップアップ内の出店回クリック時にフィルターを切り替える
   const handleSelectEventFromModal = (eventId: string) => {
     setSelectedEventId(eventId);
     setSelectedExhibitor(null);
   };
 
+  // チラシ画像URLの判定（flyerUrl または flyerImageUrl）
+  const activeEventFlyer = activeEvent?.flyerUrl || activeEvent?.flyerImageUrl || upcomingEvent?.flyerUrl || upcomingEvent?.flyerImageUrl;
+
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 max-w-7xl">
-      {/* 0. スクロール追従ヘッダー（スマホ・PC両対応、出店者をスクロールダウンして探しても小さく上部に表示され続ける） */}
+    <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 max-w-7xl">
+      {/* スクロール追従スリムバー */}
       <div
         className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 ease-in-out ${
           isScrolled
@@ -166,72 +165,29 @@ export default function MarketBoard() {
             : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        {/* スマホ表示用コンパクトバー (sm:hidden) */}
-        <div className="sm:hidden bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EBE7DF]">
-          {/* 次回開催のお知らせ（縦幅を狭くした極小スリム帯） */}
-          {upcomingEvent && (
-            <div className="bg-[#2B4C38] text-white px-3.5 py-1.5 flex items-center justify-between gap-2 text-xs border-b border-emerald-900/30">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shrink-0"></span>
-                <span className="font-bold truncate text-[11px]">{upcomingEvent.name}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-emerald-100 shrink-0 text-[10px]">
-                <span>📅 {upcomingEvent.date}</span>
-              </div>
+        <div className="bg-[#FAF6F0]/95 backdrop-blur-md border-b-2 border-[#3A3530]">
+          <div className="container mx-auto px-3 sm:px-6 py-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base sm:text-xl">🎪</span>
+              <span className="font-black text-xs sm:text-base text-[#2D2622] truncate">
+                ヘルシーマーケット
+              </span>
             </div>
-          )}
-          {/* カテゴリボタン（縦幅を狭くしたコンパクト横スクロール） */}
-          <div className="py-1.5 px-3 overflow-x-auto no-scrollbar flex items-center gap-1.5">
-            {FILTER_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => handleFilterChange(cat)}
-                className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer border ${
-                  filter === cat
-                    ? 'bg-[#2D5A43] text-white border-[#2D5A43] font-semibold shadow-2xs'
-                    : 'bg-white text-[#5C564E] border-[#E5E0D8]'
-                }`}
-              >
-                <span className="text-xs mr-0.5">{CATEGORY_ICONS[cat]}</span>
-                <span>{cat === 'ALL' ? 'すべて' : cat}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* PC表示用コンパクトバー (hidden sm:block) */}
-        <div className="hidden sm:block bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EBE7DF]">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-2 flex items-center justify-between gap-4">
-            {/* 次回開催のお知らせ（コンパクト） */}
-            {upcomingEvent && (
-              <div className="flex items-center gap-2.5 bg-[#2B4C38] text-white px-3.5 py-1.5 rounded-xl text-xs shrink-0 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-amber-300"></span>
-                <span className="font-bold text-white">{upcomingEvent.name}</span>
-                <span className="text-emerald-100 text-[11px] pl-2 border-l border-white/20">
-                  📅 {upcomingEvent.date}
-                </span>
-                <span className="text-emerald-100 text-[11px] pl-2 border-l border-white/20">
-                  📍 {upcomingEvent.location}
-                </span>
-              </div>
-            )}
-
-            {/* カテゴリボタン（コンパクト） */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {/* カテゴリボタン（スリム） */}
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
               {FILTER_CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => handleFilterChange(cat)}
-                  className={`px-3.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer border ${
+                  className={`px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap border ${
                     filter === cat
-                      ? 'bg-[#2D5A43] text-white border-[#2D5A43] font-semibold shadow-xs'
-                      : 'bg-white text-[#5C564E] border-[#E5E0D8] hover:bg-[#F9F7F3] hover:text-[#2D2A26]'
+                      ? 'bg-[#C86D51] text-white border-[#3A3530]'
+                      : 'bg-white text-[#4A3E38] border-stone-300'
                   }`}
                 >
-                  <span className="text-xs mr-1">{CATEGORY_ICONS[cat]}</span>
-                  <span>{cat === 'ALL' ? 'すべて' : cat}</span>
+                  <span>{CATEGORY_ICONS[cat]}</span>
+                  <span className="hidden sm:inline ml-1">{cat === 'ALL' ? 'すべて' : cat}</span>
                 </button>
               ))}
             </div>
@@ -239,67 +195,112 @@ export default function MarketBoard() {
         </div>
       </div>
 
-      {/* 1. ページヘッダー（シンプル＆スタイリッシュな自然派デザイン） */}
-      <header className="text-center mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#2D2A26] tracking-tight">
+      {/* 1. ヘッダー (温かみのある見出しとマルシェ看板風演出) */}
+      <header className="text-center mb-6 sm:mb-8 relative">
+        <div className="inline-block bg-[#E0A96D]/30 px-4 py-1 rounded-full text-xs sm:text-sm font-bold text-[#8C4A28] mb-2 border border-[#E0A96D]/60 -rotate-1 shadow-2xs">
+          🌱 おいしい・たのしい・手作りマルシェ
+        </div>
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-[#2D2622] tracking-tight drop-shadow-xs">
           ヘルシーマーケット
         </h1>
-        <p className="mt-2 text-xs sm:text-sm md:text-base text-[#68635B] max-w-md sm:max-w-xl mx-auto leading-relaxed">
-          自然の恵みと手仕事が息づく、こだわりの出店者さんをご紹介します。
-        </p>
       </header>
 
-      {/* 2. 次回開催日と開催場所のハイライト告知バナー */}
-      {upcomingEvent && (
-        <div className="relative overflow-hidden bg-[#2B4C38] text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs mb-6 sm:mb-8 border border-emerald-900/40">
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-1.5 bg-white/15 text-emerald-100 text-[11px] font-medium px-2.5 py-0.5 rounded-full mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
-              次回開催のお知らせ
-            </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight mb-2">
-              {upcomingEvent.name}
-            </h2>
-            <div className="flex flex-wrap items-center gap-y-1.5 gap-x-4 sm:gap-x-6 text-emerald-100/90 text-xs sm:text-sm">
-              <div className="flex items-center gap-1.5">
-                <span className="opacity-80">📅</span>
-                <span className="font-medium text-white">{upcomingEvent.date}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="opacity-80">📍</span>
-                <span className="font-medium text-white">{upcomingEvent.location}</span>
-              </div>
+      {/* 2. 主催者からの温かいメッセージ枠 & イベントチラシ閲覧機能 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+        {/* メッセージ枠 (フライヤー風) */}
+        <div className="md:col-span-2 relative bg-[#FDFBF7] border-2 border-[#3A3530] rounded-2xl p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(58,53,48,0.85)] -rotate-[0.5deg]">
+          <div className="absolute -top-3 left-6 w-16 sm:w-24 h-5 masking-tape-amber -rotate-2 border-dashed border-amber-300/40"></div>
+          <div className="flex items-start gap-3 mb-2 pt-1">
+            <span className="text-2xl sm:text-3xl">🌾</span>
+            <div>
+              <h2 className="text-base sm:text-xl font-extrabold text-[#2D2622]">
+                からだに優しい食べものと、手作りのぬくもりが集まる小さなマーケットです
+              </h2>
+              <p className="text-xs sm:text-sm text-[#59483E] mt-1 leading-relaxed">
+                地域の農家さんが育てた新鮮な野菜、ていねいに焼き上げたパンや焼き菓子、心を込めたハンドメイド作品。出店者さんとの会話を楽しみながら、とっておきのお気に入りを見つけに来てくださいね。
+              </p>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* 3. 開催回セレクター（PC・タブレット表示、スマホは右下フローティングボタンからポップアップ） */}
-      <div className="hidden sm:block bg-white border border-[#EBE7DF] rounded-2xl p-3 sm:p-4 mb-6 shadow-xs">
-        <div className="flex items-center justify-between gap-2 mb-2 px-0.5">
+          {upcomingEvent && (
+            <div className="mt-3 pt-3 border-t-2 border-dashed border-stone-200 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+              <div className="flex items-center gap-2 font-bold text-[#4A6B5D]">
+                <span>📅 次回開催: {upcomingEvent.name}</span>
+              </div>
+              <div className="text-stone-600">
+                📍 {upcomingEvent.location} （{upcomingEvent.date}）
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* イベントチラシ（JPG）サムネイル ＆ 拡大ボタン */}
+        <div className="relative bg-[#FDFBF7] border-2 border-[#3A3530] rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_0px_rgba(58,53,48,0.85)] flex flex-col justify-between rotate-[0.8deg]">
+          <div className="absolute -top-3 right-6 w-16 sm:w-20 h-5 masking-tape-green rotate-3 border-dashed border-emerald-300/40"></div>
+          
+          <div className="mb-2">
+            <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#8C4A28] mb-1">
+              <span>🖼️</span>
+              <span>イベントチラシ</span>
+            </div>
+            <p className="text-[11px] sm:text-xs text-[#59483E]">
+              開催案内フライヤーをご覧いただけます
+            </p>
+          </div>
+
+          {activeEventFlyer ? (
+            <div
+              onClick={() => setActiveFlyerUrl(activeEventFlyer)}
+              className="group relative w-full h-32 sm:h-36 bg-stone-100 rounded-xl overflow-hidden border-2 border-[#3A3530] cursor-pointer shadow-2xs hover:scale-[1.02] transition-transform"
+            >
+              <Image
+                src={activeEventFlyer}
+                alt="イベントチラシ"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform"
+              />
+              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <span className="bg-[#FAF6F0] text-[#2D2622] font-extrabold text-xs px-3 py-1.5 rounded-full border-2 border-[#3A3530] shadow-xs flex items-center gap-1">
+                  <span>🔍</span>
+                  <span>チラシを拡大表示</span>
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-32 sm:h-36 bg-[#FAF6F0] rounded-xl border-2 border-dashed border-stone-300 flex flex-col items-center justify-center text-center p-2 text-stone-500">
+              <span className="text-2xl mb-1">📜</span>
+              <span className="text-xs font-bold">次回チラシ準備中</span>
+              <span className="text-[10px] text-stone-400 mt-0.5">開催日が近づくと掲載されます</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. 開催日を選ぶ (いつ行く？ 開催日を選ぶ) */}
+      <div className="bg-[#FDFBF7] border-2 border-[#3A3530] rounded-2xl p-3.5 sm:p-5 mb-6 shadow-[3px_3px_0px_0px_rgba(58,53,48,0.85)]">
+        <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm font-bold text-[#2D2A26]">開催回</span>
+            <span className="text-lg">🗓️</span>
+            <h2 className="text-sm sm:text-base font-black text-[#2D2622]">
+              いつ行く？ 開催日を選ぶ
+            </h2>
             {activeEvent && (
-              <span className="text-[11px] bg-emerald-50 text-[#2D5A43] font-semibold px-2 py-0.5 rounded-md border border-emerald-200/60">
+              <span className="text-xs bg-[#E2EFE0] text-[#2D532B] font-extrabold px-2.5 py-0.5 rounded-full border border-[#4A6B5D]">
                 {activeEvent.name}
               </span>
             )}
           </div>
-          <span className="text-[11px] text-[#8C857B]">
-            名前順（昇順）
-          </span>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-          {/* 次回開催ボタン */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           {upcomingEvent && (
             <button
               type="button"
               onClick={() => setSelectedEventId(upcomingEvent.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap border-2 border-[#3A3530] flex items-center gap-1 ${
                 selectedEventId === upcomingEvent.id
-                  ? 'bg-[#2D5A43] text-white shadow-xs'
-                  : 'bg-[#FAF8F5] text-[#5C564E] border border-[#E5E0D8] hover:bg-[#F2EEE6]'
+                  ? 'bg-[#4A6B5D] text-white shadow-[2px_2px_0px_0px_rgba(58,53,48,1)]'
+                  : 'bg-white text-[#4A3E38] hover:bg-[#FAF6F0]'
               }`}
             >
               <span>★</span>
@@ -307,30 +308,28 @@ export default function MarketBoard() {
             </button>
           )}
 
-          {/* 昇順ソートされた過去回ボタン群 */}
           {pastEvents.map((ev) => (
             <button
               key={ev.id}
               type="button"
               onClick={() => setSelectedEventId(ev.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap border-2 border-[#3A3530] ${
                 selectedEventId === ev.id
-                  ? 'bg-[#2D2A26] text-white shadow-xs font-semibold'
-                  : 'bg-[#FAF8F5] text-[#5C564E] border border-[#E5E0D8] hover:bg-[#F2EEE6]'
+                  ? 'bg-[#3A3530] text-white shadow-[2px_2px_0px_0px_rgba(58,53,48,1)]'
+                  : 'bg-white text-[#4A3E38] hover:bg-[#FAF6F0]'
               }`}
             >
               <span>{ev.name}</span>
             </button>
           ))}
 
-          {/* 全出店者ボタン */}
           <button
             type="button"
             onClick={() => setSelectedEventId('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap border-2 border-[#3A3530] ${
               selectedEventId === 'ALL' || selectedEventId === 'INIT'
-                ? 'bg-[#4A453E] text-white shadow-xs font-semibold'
-                : 'bg-[#FAF8F5] text-[#7C756B] border border-[#E5E0D8] hover:bg-[#F2EEE6]'
+                ? 'bg-[#7C6A5D] text-white shadow-[2px_2px_0px_0px_rgba(58,53,48,1)]'
+                : 'bg-white text-[#59483E] hover:bg-[#FAF6F0]'
             }`}
           >
             全店舗一覧 (累計)
@@ -338,35 +337,25 @@ export default function MarketBoard() {
         </div>
       </div>
 
-      {/* 4. 出店者名 検索窓（PC・タブレット表示、スマホは右下フローティングボタンからポップアップ） */}
-      <div className="hidden sm:block w-full max-w-md mx-auto mb-4 px-1">
+      {/* 4. 検索窓 (何をお探しですか？) */}
+      <div className="w-full max-w-md mx-auto mb-6 px-1">
         <div className="relative flex items-center">
-          <svg
-            className="w-4 h-4 text-[#8C857B] absolute left-3.5 pointer-events-none"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <span className="absolute left-4 text-base pointer-events-none">🔍</span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="出店者名で検索..."
-            className="w-full pl-10 pr-9 py-2 sm:py-2.5 bg-white border border-[#E5E0D8] rounded-full text-xs sm:text-sm text-[#2D2A26] placeholder-[#9E978C] focus:outline-hidden focus:ring-2 focus:ring-[#2D5A43] focus:border-transparent transition-all shadow-2xs"
+            placeholder="何をお探しですか？ (店名や商品)"
+            className="w-full pl-11 pr-10 py-2.5 sm:py-3 bg-[#FDFBF7] border-2 border-[#3A3530] rounded-full text-xs sm:text-sm text-[#2D2622] placeholder-[#8C7B70] focus:outline-hidden focus:ring-2 focus:ring-[#C86D51] transition-all shadow-[2px_2px_0px_0px_rgba(58,53,48,0.7)] font-bold"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 text-[#9E978C] hover:text-[#2D2A26] p-1 rounded-full hover:bg-stone-100 transition-colors cursor-pointer"
+              className="absolute right-3 text-stone-500 hover:text-rose-600 p-1 rounded-full cursor-pointer font-bold"
               aria-label="検索キーワードをクリア"
-              title="クリア"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ✕
             </button>
           )}
         </div>
@@ -378,93 +367,59 @@ export default function MarketBoard() {
         onFilterChange={handleFilterChange}
       />
 
-      {/* 6. 該当件数・表示状況アナウンス */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <div className="text-xs sm:text-sm text-[#68635B] flex flex-wrap items-center gap-1.5">
-          {activeEvent ? (
-            <span className="inline-flex items-center gap-1">
-              <span>「<strong className="text-[#2D2A26] font-semibold">{activeEvent.name}</strong>」の出店者:</span>
-              <button
-                type="button"
-                onClick={() => setSelectedEventId('ALL')}
-                className="text-stone-400 hover:text-rose-600 font-bold ml-0.5 cursor-pointer text-xs"
-                title="全店舗一覧に戻す"
-              >
-                ✕
-              </button>
-            </span>
-          ) : (
-            <span>登録店舗:</span>
-          )}
-          {searchQuery.trim() && (
-            <span className="inline-flex items-center gap-1 bg-emerald-50 text-[#2D5A43] font-medium px-2 py-0.5 rounded-md border border-emerald-200/60 text-xs">
-              「{searchQuery}」で検索中
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="hover:text-rose-600 font-bold ml-0.5 cursor-pointer"
-                title="検索を解除"
-              >
-                ✕
-              </button>
-            </span>
-          )}
-          <strong className="text-[#2D5A43] font-bold text-sm sm:text-base ml-1">{filteredExhibitors.length}</strong> 件
+      {/* 6. 件数・状況表示 (今月出会える出店者さんたち) */}
+      <div className="flex items-center justify-between mb-5 px-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xl sm:text-2xl">🏪</span>
+          <h2 className="text-base sm:text-2xl font-black text-[#2D2622]">
+            今月出会える出店者さんたち
+          </h2>
+          <span className="bg-[#C86D51] text-white font-extrabold text-xs sm:text-sm px-2.5 py-0.5 rounded-full border border-[#3A3530] shadow-2xs">
+            {filteredExhibitors.length}件
+          </span>
         </div>
       </div>
 
-      {/* 7. 出店者カードグリッド（スマホ1カラム、タブレット2カラム、PC4カラム） */}
+      {/* 7. 出店者カードグリッド（スマホは一覧性向上のため3列 grid-cols-3） */}
       {loading ? (
         <div className="text-center py-16">
-          <p className="text-lg text-stone-500">出店者情報を読み込んでいます...</p>
-        </div>
-      ) : error ? (
-        <div className="text-center py-12 max-w-xl mx-auto p-6 bg-amber-50 border border-amber-200 rounded-xl">
-          <p className="text-lg font-semibold text-amber-800">{error}</p>
-          <p className="mt-2 text-sm text-amber-700">
-            Firebase Consoleの「Cloud Firestore」&gt;「ルール」の設定を確認してください。
+          <p className="text-base sm:text-lg font-bold text-[#59483E] animate-pulse">
+            出店者さんの情報を準備中です... 🌱
           </p>
         </div>
+      ) : error ? (
+        <div className="text-center py-12 max-w-xl mx-auto p-6 bg-amber-50 border-2 border-[#3A3530] rounded-2xl shadow-xs">
+          <p className="text-base font-bold text-amber-900">{error}</p>
+        </div>
       ) : filteredExhibitors.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredExhibitors.map((exhibitor) => (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4 md:gap-5">
+          {filteredExhibitors.map((exhibitor, idx) => (
             <ExhibitorCard
               key={exhibitor.id}
               exhibitor={exhibitor}
               onClick={() => handleCardClick(exhibitor)}
+              index={idx}
             />
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-white rounded-2xl border border-[#EBE7DF] p-8 shadow-xs">
-          <p className="text-base text-[#2D2A26] font-medium mb-2">
-            {searchQuery ? `「${searchQuery}」に一致する出店者が見つかりませんでした。` : '該当する出店者が見つかりませんでした。'}
+        <div className="text-center py-16 bg-[#FDFBF7] rounded-2xl border-2 border-[#3A3530] p-8 shadow-[3px_3px_0px_0px_rgba(58,53,48,0.85)] max-w-md mx-auto">
+          <p className="text-base text-[#2D2622] font-bold mb-2">
+            お探しの出店者さんが見つかりませんでした 🌾
           </p>
-          <p className="text-xs text-[#8C857B] mb-4">
-            出店者名のキーワードを変更するか、選択中の開催回やカテゴリ条件を変更してお試しください。
+          <p className="text-xs text-[#59483E] mb-4">
+            キーワードやカテゴリを変更してお試しください
           </p>
-          {(searchQuery || filter !== 'ALL' || selectedEventId !== 'ALL') && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-xs font-semibold text-[#2D5A43] bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200/60 transition-colors cursor-pointer"
-                >
-                  検索キーワードをクリア
-                </button>
-              )}
-              {filter !== 'ALL' && (
-                <button
-                  type="button"
-                  onClick={() => setFilter('ALL')}
-                  className="text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-                >
-                  すべてのカテゴリを表示
-                </button>
-              )}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setFilter('ALL');
+            }}
+            className="text-xs font-extrabold text-white bg-[#C86D51] hover:bg-[#B35C41] px-4 py-2 rounded-full border-2 border-[#3A3530] shadow-[2px_2px_0px_0px_rgba(58,53,48,1)] cursor-pointer"
+          >
+            条件をリセットする
+          </button>
         </div>
       )}
 
@@ -476,175 +431,122 @@ export default function MarketBoard() {
         onSelectEvent={handleSelectEventFromModal}
       />
 
-      {/* 8. スマホ用フローティングボタン群（右下固定・正円・フィルター＆検索） */}
-      <aside aria-label="モバイル用絞り込み・検索" className="sm:hidden fixed bottom-6 right-4 z-40 flex flex-col gap-3 items-end">
-        {/* 出店者名 検索ボタン（正円・虫眼鏡アイコン） */}
+      {/* イベントチラシ（JPG）高解像度モーダル/ライトボックス */}
+      {activeFlyerUrl && (
+        <div
+          onClick={() => setActiveFlyerUrl(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs animate-fade-in cursor-zoom-out"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-white rounded-2xl border-2 border-[#3A3530] p-2 sm:p-4 max-w-4xl max-h-[92vh] flex flex-col items-center overflow-hidden shadow-2xl animate-slide-up-fade"
+          >
+            <button
+              type="button"
+              onClick={() => setActiveFlyerUrl(null)}
+              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-[#FAF6F0] text-[#2D2622] border-2 border-[#3A3530] font-black text-sm flex items-center justify-center shadow-md hover:bg-rose-100 cursor-pointer"
+              aria-label="閉じる"
+            >
+              ✕
+            </button>
+            <div className="relative w-full h-[80vh] flex items-center justify-center">
+              <Image
+                src={activeFlyerUrl}
+                alt="イベントチラシ拡大画像"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8. スマホ用 フローティングボタン群 (検索 & 絞り込み) */}
+      <aside aria-label="モバイル用絞り込み・検索" className="sm:hidden fixed bottom-5 right-3 z-40 flex flex-col gap-2.5 items-end">
         <button
           type="button"
           onClick={() => setIsMobileSearchOpen(true)}
-          aria-label="出店者名で検索"
-          className="w-14 h-14 rounded-full bg-white text-[#2D5A43] border border-[#E5E0D8] shadow-lg active:scale-90 transition-all flex items-center justify-center cursor-pointer relative"
+          aria-label="何をお探しですか？"
+          className="w-12 h-12 rounded-full bg-[#FDFBF7] text-[#2D2622] border-2 border-[#3A3530] shadow-[2px_2px_0px_0px_rgba(58,53,48,1)] active:scale-95 transition-all flex items-center justify-center cursor-pointer font-bold text-lg"
         >
-          <svg className="w-6 h-6 text-[#2D5A43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          {searchQuery.trim() && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 text-[#2D2A26] rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold">
-              ✓
-            </span>
-          )}
+          🔍
         </button>
 
-        {/* 開催回 絞り込みボタン（正円・フィルターアイコン） */}
         <button
           type="button"
           onClick={() => setIsMobileEventFilterOpen(true)}
-          aria-label="開催回の絞り込み"
-          className="w-14 h-14 rounded-full bg-[#2D5A43] text-white border-2 border-white/80 shadow-lg active:scale-90 transition-all flex items-center justify-center cursor-pointer relative"
+          aria-label="開催日を選ぶ"
+          className="w-12 h-12 rounded-full bg-[#C86D51] text-white border-2 border-[#3A3530] shadow-[2px_2px_0px_0px_rgba(58,53,48,1)] active:scale-95 transition-all flex items-center justify-center cursor-pointer font-bold text-lg"
         >
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          {selectedEventId !== 'ALL' && selectedEventId !== 'INIT' && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 text-[#2D2A26] rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold">
-              ✓
-            </span>
-          )}
+          🗓️
         </button>
       </aside>
 
-      {/* 9. スマホ用 出店者名検索ポップアップ */}
+      {/* 9. スマホ用 検索ポップアップ */}
       {isMobileSearchOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:hidden bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:hidden bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
           onClick={() => setIsMobileSearchOpen(false)}
         >
           <div
-            className="w-full bg-white rounded-t-3xl p-5 shadow-2xl border border-stone-200 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-250"
+            className="w-full bg-[#FAF6F0] rounded-t-3xl p-5 shadow-2xl border-t-2 border-[#3A3530] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ヘッダー */}
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
-              <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-50 text-[#2D5A43] rounded-full">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </span>
-                <h3 className="text-base font-bold text-[#2D2A26]">出店者名で検索</h3>
-              </div>
+            <div className="flex items-center justify-between pb-3 border-b-2 border-stone-300 mb-4">
+              <h3 className="text-base font-black text-[#2D2622]">何をお探しですか？</h3>
               <button
                 type="button"
                 onClick={() => setIsMobileSearchOpen(false)}
-                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center cursor-pointer transition-colors"
-                aria-label="閉じる"
+                className="w-8 h-8 rounded-full bg-white text-[#2D2622] border-2 border-[#3A3530] font-bold flex items-center justify-center"
               >
                 ✕
               </button>
             </div>
 
-            {/* 検索入力欄 */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setIsMobileSearchOpen(false);
-              }}
-              className="relative mb-4"
-            >
+            <form onSubmit={(e) => { e.preventDefault(); setIsMobileSearchOpen(false); }}>
               <input
                 type="text"
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="店名やキーワードを入力..."
-                className="w-full pl-10 pr-10 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm text-[#2D2A26] placeholder-stone-400 focus:outline-hidden focus:ring-2 focus:ring-[#2D5A43] focus:bg-white transition-all"
+                placeholder="店名やおすすめ商品名..."
+                className="w-full px-4 py-3 bg-white border-2 border-[#3A3530] rounded-xl text-sm font-bold text-[#2D2622] mb-4"
               />
-              <svg
-                className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5 pointer-events-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchOpen(false)}
+                className="w-full py-3 bg-[#4A6B5D] text-white font-extrabold text-sm rounded-xl border-2 border-[#3A3530] shadow-[2px_2px_0px_0px_rgba(58,53,48,1)]"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-3 text-stone-400 hover:text-stone-700 p-1 rounded-full cursor-pointer"
-                  title="クリア"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
+                検索結果をみる ({filteredExhibitors.length}件)
+              </button>
             </form>
-
-            {/* 検索結果件数 ＆ 操作ボタン */}
-            <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-xs text-stone-500 mb-4">
-              <span>
-                該当件数: <strong className="text-[#2D5A43] font-bold text-sm">{filteredExhibitors.length}</strong> 件
-              </span>
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-stone-500 hover:text-rose-600 underline cursor-pointer"
-                >
-                  条件をクリア
-                </button>
-              )}
-            </div>
-
-            {/* 完了ボタン */}
-            <button
-              type="button"
-              onClick={() => setIsMobileSearchOpen(false)}
-              className="w-full py-3 bg-[#2D5A43] hover:bg-[#234735] text-white font-bold text-sm rounded-xl transition-colors shadow-xs cursor-pointer"
-            >
-              結果を見る ({filteredExhibitors.length}件)
-            </button>
           </div>
         </div>
       )}
 
-      {/* 10. スマホ用 開催回の絞り込みポップアップ */}
+      {/* 10. スマホ用 開催日選択ポップアップ */}
       {isMobileEventFilterOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:hidden bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:hidden bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
           onClick={() => setIsMobileEventFilterOpen(false)}
         >
           <div
-            className="w-full bg-white rounded-t-3xl p-5 shadow-2xl border border-stone-200 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-250"
+            className="w-full bg-[#FAF6F0] rounded-t-3xl p-5 shadow-2xl border-t-2 border-[#3A3530] max-h-[80vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ヘッダー */}
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
-              <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-50 text-[#2D5A43] rounded-full">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                  </svg>
-                </span>
-                <div>
-                  <h3 className="text-base font-bold text-[#2D2A26]">開催回の絞り込み</h3>
-                  <p className="text-[11px] text-stone-500">表示したい開催回を選択してください</p>
-                </div>
-              </div>
+            <div className="flex items-center justify-between pb-3 border-b-2 border-stone-300 mb-4">
+              <h3 className="text-base font-black text-[#2D2622]">いつ行く？ 開催日を選ぶ</h3>
               <button
                 type="button"
                 onClick={() => setIsMobileEventFilterOpen(false)}
-                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center cursor-pointer transition-colors"
-                aria-label="閉じる"
+                className="w-8 h-8 rounded-full bg-white text-[#2D2622] border-2 border-[#3A3530] font-bold flex items-center justify-center"
               >
                 ✕
               </button>
             </div>
 
-            {/* 開催回リスト */}
-            <div className="space-y-2 overflow-y-auto max-h-[50vh] pr-1 py-1">
-              {/* 次回開催ボタン */}
+            <div className="space-y-2 overflow-y-auto pr-1 py-1">
               {upcomingEvent && (
                 <button
                   type="button"
@@ -652,75 +554,47 @@ export default function MarketBoard() {
                     setSelectedEventId(upcomingEvent.id);
                     setIsMobileEventFilterOpen(false);
                   }}
-                  className={`w-full p-3.5 rounded-xl text-left text-sm font-semibold transition-all flex items-center justify-between cursor-pointer border ${
+                  className={`w-full p-3.5 rounded-xl text-left text-sm font-extrabold transition-all border-2 border-[#3A3530] ${
                     selectedEventId === upcomingEvent.id
-                      ? 'bg-[#2D5A43] text-white border-[#2D5A43] shadow-xs'
-                      : 'bg-emerald-50/50 text-[#2D5A43] border-emerald-200/80 hover:bg-emerald-50'
+                      ? 'bg-[#4A6B5D] text-white shadow-[2px_2px_0px_0px_rgba(58,53,48,1)]'
+                      : 'bg-white text-[#2D2622]'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-amber-400 text-base">★</span>
-                    <div>
-                      <div className="font-bold">次回 ({upcomingEvent.name})</div>
-                      <div className={`text-xs mt-0.5 ${selectedEventId === upcomingEvent.id ? 'text-emerald-100' : 'text-stone-500'}`}>
-                        {upcomingEvent.date}
-                      </div>
-                    </div>
-                  </div>
-                  {selectedEventId === upcomingEvent.id && (
-                    <span className="text-xs bg-white/20 px-2 py-0.5 rounded-md font-bold">
-                      選択中
-                    </span>
-                  )}
+                  次回 ({upcomingEvent.name})
                 </button>
               )}
 
-              {/* 昇順ソートされた過去開催回ボタン群 */}
-              {pastEvents.map((ev) => {
-                const isSelected = selectedEventId === ev.id;
-                return (
-                  <button
-                    key={ev.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedEventId(ev.id);
-                      setIsMobileEventFilterOpen(false);
-                    }}
-                    className={`w-full p-3 rounded-xl text-left text-sm font-medium transition-all flex items-center justify-between cursor-pointer border ${
-                      isSelected
-                        ? 'bg-[#2D2A26] text-white border-[#2D2A26] shadow-xs font-semibold'
-                        : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
-                    }`}
-                  >
-                    <span>{ev.name}</span>
-                    {isSelected && (
-                      <span className="text-xs bg-white/20 px-2 py-0.5 rounded-md font-bold">
-                        選択中
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              {pastEvents.map((ev) => (
+                <button
+                  key={ev.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedEventId(ev.id);
+                    setIsMobileEventFilterOpen(false);
+                  }}
+                  className={`w-full p-3 rounded-xl text-left text-sm font-extrabold border-2 border-[#3A3530] ${
+                    selectedEventId === ev.id
+                      ? 'bg-[#3A3530] text-white shadow-[2px_2px_0px_0px_rgba(58,53,48,1)]'
+                      : 'bg-white text-[#2D2622]'
+                  }`}
+                >
+                  {ev.name}
+                </button>
+              ))}
 
-              {/* 全店舗一覧 (累計) */}
               <button
                 type="button"
                 onClick={() => {
                   setSelectedEventId('ALL');
                   setIsMobileEventFilterOpen(false);
                 }}
-                className={`w-full p-3 rounded-xl text-left text-sm font-medium transition-all flex items-center justify-between cursor-pointer border ${
+                className={`w-full p-3 rounded-xl text-left text-sm font-extrabold border-2 border-[#3A3530] ${
                   selectedEventId === 'ALL' || selectedEventId === 'INIT'
-                    ? 'bg-[#4A453E] text-white border-[#4A453E] shadow-xs font-semibold'
-                    : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
+                    ? 'bg-[#7C6A5D] text-white shadow-[2px_2px_0px_0px_rgba(58,53,48,1)]'
+                    : 'bg-white text-[#2D2622]'
                 }`}
               >
-                <span>全店舗一覧 (累計)</span>
-                {(selectedEventId === 'ALL' || selectedEventId === 'INIT') && (
-                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded-md font-bold">
-                    選択中
-                  </span>
-                )}
+                全店舗一覧 (累計)
               </button>
             </div>
           </div>

@@ -6,66 +6,80 @@ import { Exhibitor, CATEGORY_STYLES, getExhibitorCategories, getExhibitorImages 
 type Props = {
   exhibitor: Exhibitor;
   onClick: () => void;
+  index?: number;
 };
 
 const defaultStyles = {
   base: "stone",
-  bg: "bg-stone-50/60",
+  bg: "bg-stone-50",
   text: "text-stone-800",
-  badgeBg: "bg-stone-100",
-  badgeText: "text-stone-800",
-  border: "border-stone-200",
+  badgeBg: "bg-[#EFE8E1]",
+  badgeText: "text-[#59483E]",
+  border: "border-[#7C6A5D]",
 };
 
 const placeholderImage = "https://via.placeholder.com/400x300.png?text=No+Image";
 
-export default function ExhibitorCard({ exhibitor, onClick }: Props) {
+export default function ExhibitorCard({ exhibitor, onClick, index = 0 }: Props) {
   const categories = getExhibitorCategories(exhibitor);
   const images = getExhibitorImages(exhibitor);
   const mainImage = images[0] || exhibitor.imageUrl || placeholderImage;
 
+  // あえてランダム風に傾き（-1.5deg 〜 1.5deg）をつけて温かみのあるポラロイド感を追加
+  const rotations = [
+    "rotate-[1.2deg]",
+    "-rotate-[1deg]",
+    "rotate-[0.8deg]",
+    "-rotate-[1.5deg]",
+    "rotate-[1.5deg]",
+    "-rotate-[0.8deg]",
+  ];
+  const tiltClass = rotations[index % rotations.length];
+
   return (
     <div
       onClick={onClick}
-      className="group relative flex flex-col w-full rounded-2xl overflow-hidden cursor-pointer 
-                 transition-all duration-300 ease-out bg-white border border-[#EBE7DF]
-                 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99]"
+      className={`group relative flex flex-col w-full bg-[#FDFBF7] rounded-lg cursor-pointer 
+                 transition-all duration-300 ease-out border-2 border-[#3A3530]
+                 shadow-[3px_3px_0px_0px_rgba(58,53,48,0.85)] hover:shadow-[5px_5px_0px_0px_rgba(58,53,48,1)]
+                 hover:-translate-y-1 ${tiltClass} hover:rotate-0 hover:scale-[1.02] p-1.5 sm:p-2.5`}
     >
-      {/* スマホ横向き撮影比率（4:3）に合わせた画像コンテナ */}
-      <div className="relative w-full aspect-[4/3] bg-[#F2EFE9] overflow-hidden">
+      {/* マスキングテープ風の装飾ワンポイント */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 sm:w-16 h-3.5 sm:h-5 masking-tape-amber z-10 -rotate-2 pointer-events-none opacity-80 rounded-xs border-dashed border-amber-300/40"></div>
+
+      {/* 写真エリア（ポラロイド風） */}
+      <div className="relative w-full aspect-[4/3] bg-[#FAF6F0] rounded-sm overflow-hidden border border-stone-200">
         <Image
           src={mainImage}
           alt={exhibitor.name}
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-104"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-108"
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
         />
 
-        {/* 複数写真がある場合の枚数インジケーター */}
+        {/* 写真枚数表示 */}
         {images.length > 1 && (
-          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 bg-black/55 backdrop-blur-sm text-white text-[11px] font-medium rounded-full flex items-center gap-1 shadow-xs">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>{images.length}枚</span>
+          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-[#3A3530]/80 text-white text-[9px] sm:text-[11px] font-bold rounded-full flex items-center gap-0.5 shadow-2xs">
+            <span>📷</span>
+            <span>{images.length}</span>
           </div>
         )}
       </div>
       
-      {/* テキスト・情報エリア（シンプル＆スタイリッシュ） */}
-      <div className="flex-grow flex flex-col justify-between p-3.5 sm:p-4 bg-white">
+      {/* 情報エリア */}
+      <div className="flex-grow flex flex-col justify-between pt-1.5 sm:pt-2.5 px-0.5">
         <div>
-          {/* カテゴリバッジ */}
+          {/* スタンプ風カテゴリバッジ */}
           {categories.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-1.5">
+            <div className="flex flex-wrap gap-1 mb-1">
               {categories.map((cat) => {
                 const catStyle = CATEGORY_STYLES[cat] || defaultStyles;
                 return (
                   <span
                     key={cat}
-                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${catStyle.badgeBg} ${catStyle.badgeText} border ${catStyle.border}`}
+                    className={`inline-block px-1.5 py-0.2 rounded-full text-[9px] sm:text-xs font-bold ${catStyle.badgeBg} ${catStyle.badgeText} border ${catStyle.border} shadow-2xs`}
                   >
-                    #{cat}
+                    {cat}
                   </span>
                 );
               })}
@@ -73,13 +87,13 @@ export default function ExhibitorCard({ exhibitor, onClick }: Props) {
           )}
 
           {/* 出店者名 */}
-          <h3 className="font-bold text-base sm:text-lg text-[#2D2A26] leading-snug line-clamp-1 group-hover:text-[#2D5A43] transition-colors">
+          <h3 className="font-extrabold text-xs sm:text-base text-[#2D2622] leading-tight line-clamp-1 group-hover:text-[#C86D51] transition-colors">
             {exhibitor.name}
           </h3>
 
-          {/* 紹介文 */}
+          {/* 紹介文（PC・タブレットで短く表示、スマホは簡潔に） */}
           {exhibitor.description && (
-            <p className="text-xs sm:text-sm text-[#666056] line-clamp-2 mt-1.5 leading-relaxed">
+            <p className="text-[10px] sm:text-xs text-[#59483E] line-clamp-2 mt-1 leading-relaxed hidden sm:block">
               {exhibitor.description}
             </p>
           )}

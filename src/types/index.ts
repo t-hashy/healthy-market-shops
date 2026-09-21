@@ -29,6 +29,8 @@ export type MarketEvent = {
   location: string; // 例: "世田谷公園 けやき広場"
   isUpcoming?: boolean; // 次回開催フラグ
   order?: number; // ソート用（大きいほど新しい等）
+  flyerUrl?: string; // チラシJPG画像のURL
+  flyerImageUrl?: string; // 互換性用
   createdAt?: string;
 };
 
@@ -50,14 +52,14 @@ export const FILTER_CATEGORIES = ["ALL", ...CATEGORIES] as const;
 export type FilterCategory = (typeof FILTER_CATEGORIES)[number];
 
 export const CATEGORY_ICONS: Record<FilterCategory, string> = {
-  ALL: "🌱",
+  ALL: "🌾",
   農家: "🥬",
   飲食: "🍲",
   カフェ: "☕",
   クラフト: "🧵",
 };
 
-// カテゴリごとのスタイルを定義（オーガニック・自然派マルシェ向けの洗練されたアースカラー）
+// カテゴリごとのスタンプ風アースカラースタイル
 export const CATEGORY_STYLES: {
   [key in Category]: {
     base: string;
@@ -70,35 +72,35 @@ export const CATEGORY_STYLES: {
 } = {
   農家: {
     base: "emerald",
-    bg: "bg-emerald-50/60",
+    bg: "bg-emerald-50",
     text: "text-emerald-900",
-    badgeBg: "bg-emerald-100/80",
-    badgeText: "text-emerald-900",
-    border: "border-emerald-200/80",
+    badgeBg: "bg-[#E2EFE0]",
+    badgeText: "text-[#2D532B]",
+    border: "border-[#4A6B5D]",
   },
   飲食: {
     base: "amber",
-    bg: "bg-amber-50/60",
+    bg: "bg-amber-50",
     text: "text-amber-950",
-    badgeBg: "bg-amber-100/80",
-    badgeText: "text-amber-900",
-    border: "border-amber-200/80",
+    badgeBg: "bg-[#F9E9D7]",
+    badgeText: "text-[#8C4A28]",
+    border: "border-[#C86D51]",
   },
   カフェ: {
     base: "stone",
-    bg: "bg-stone-100/60",
+    bg: "bg-stone-100",
     text: "text-stone-800",
-    badgeBg: "bg-stone-200/70",
-    badgeText: "text-stone-800",
-    border: "border-stone-300/80",
+    badgeBg: "bg-[#EFE8E1]",
+    badgeText: "text-[#59483E]",
+    border: "border-[#7C6A5D]",
   },
   クラフト: {
     base: "teal",
-    bg: "bg-teal-50/60",
+    bg: "bg-teal-50",
     text: "text-teal-950",
-    badgeBg: "bg-teal-100/80",
-    badgeText: "text-teal-900",
-    border: "border-teal-200/80",
+    badgeBg: "bg-[#E0F2F1]",
+    badgeText: "text-[#1E5D5B]",
+    border: "border-[#3A8B88]",
   },
 };
 
