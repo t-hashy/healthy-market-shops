@@ -28,17 +28,38 @@ export default function ImageCropperModal({
   const imageRef = useRef<HTMLImageElement>(null);
   const touchStartDistRef = useRef<number | null>(null);
   const initialZoomRef = useRef<number>(1);
+  const [safeImageSrc, setSafeImageSrc] = useState<string | null>(null);
+  const [isLoadingImage, setIsLoadingImage] = useState<boolean>(true);
+  const [hasLoadError, setHasLoadError] = useState<boolean>(false);
 
   // 枠の表示サイズ（出店者カードの横長アスペクト比 2:1 に完全一致）
   const CROP_BOX_WIDTH = 320;
   const CROP_BOX_HEIGHT = 160;
 
-  // 初期化
+  // 初期化 & 画像ソースの安全なロード
   useEffect(() => {
-    if (isOpen && imageSrc) {
-      setZoom(1);
-      setOffset({ x: 0, y: 0 });
-      setIsDragging(false);
+    if (!isOpen || !imageSrc) {
+      setSafeImageSrc(null);
+      setIsLoadingImage(false);
+      setHasLoadError(false);
+      return;
+    }
+
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+    setIsDragging(false);
+    setHasLoadError(false);
+    setIsLoadingImage(true);
+    setImageNaturalSize({ width: 0, height: 0 });
+
+    if (imageSrc.startsWith('blob:') || imageSrc.startsWith('data:')) {
+      // ローカルBlobまたはData URLは同一オリジンなのでそのまま使用
+      setSafeImageSrc(imageSrc);
+    } else {
+      // リモート画像（Firebase Storage等）の場合、ブラウザの古い非CORSキャッシュを回避するため
+      // キャッシュバスターパラメータを付与してCORSヘッダーを確実に取得
+      const separator = imageSrc.includes('?') ? '&' : '?';
+      setSafeImageSrc(`${imageSrc}${separator}_cors_cb=${Date.now()}`);
     }
   }, [isOpen, imageSrc]);
 
@@ -49,7 +70,16 @@ export default function ImageCropperModal({
       setImageNaturalSize({ width: naturalWidth, height: naturalHeight });
       setZoom(1);
       setOffset({ x: 0, y: 0 });
+      setIsLoadingImage(false);
+      setHasLoadError(false);
     }
+  };
+
+  // 画像読み込みエラー時のハンドラ
+  const handleImageError = () => {
+    console.error('Failed to load image in cropper:', safeImageSrc);
+    setIsLoadingImage(false);
+    setHasLoadError(true);
   };
 
   // マウス操作（ドラッグ移動）
@@ -283,23 +313,55 @@ export default function ImageCropperModal({
             className="relative overflow-hidden cursor-grab active:cursor-grabbing border-2 border-amber-300 rounded-md shadow-2xl bg-black select-none touch-none"
           >
             {/* 切り取り対象の画像本体 */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              ref={imageRef}
-              src={imageSrc}
-              alt="クロップ対象"
-              onLoad={handleImageLoad}
-              draggable={false}
-              style={{
-                width: `${displayWidth}px`,
-                height: `${displayHeight}px`,
-                transform: `translate(${offset.x + CROP_BOX_WIDTH / 2 - displayWidth / 2}px, ${
-                  offset.y + CROP_BOX_HEIGHT / 2 - displayHeight / 2
-                }px)`,
-                maxWidth: 'none',
-              }}
-              className="absolute top-0 left-0 pointer-events-none transition-none"
-            />
+            {safeImageSrc && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                ref={imageRef}
+                src={safeImageSrc}
+                crossOrigin="anonymous"
+                alt="クロップ対象"
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+                draggable={false}
+                style={{
+                  width: `${displayWidth}px`,
+                  height: `${displayHeight}px`,
+                  transform: `translate(${offset.x + CROP_BOX_WIDTH / 2 - displayWidth / 2}px, ${
+                    offset.y + CROP_BOX_HEIGHT / 2 - displayHeight / 2
+                  }px)`,
+                  maxWidth: 'none',
+                  display: isLoadingImage || hasLoadError ? 'none' : 'block',
+                }}
+                className="absolute top-0 left-0 pointer-events-none transition-none"
+              />
+            )}
+
+            {/* ローディングスピナー */}
+            {isLoadingImage && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-300 text-xs font-bold gap-2 bg-stone-900/90 z-10">
+                <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                <span>画像読み込み中...</span>
+              </div>
+            )}
+
+            {/* ロードエラー時の表示 */}
+            {hasLoadError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-rose-300 text-xs font-bold gap-2 p-4 text-center bg-stone-900/95 z-10">
+                <span>画像の読み込みに失敗しました</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHasLoadError(false);
+                    setIsLoadingImage(true);
+                    const separator = (imageSrc || '').includes('?') ? '&' : '?';
+                    setSafeImageSrc(`${imageSrc}${separator}_cors_retry=${Date.now()}`);
+                  }}
+                  className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-white rounded text-[11px] cursor-pointer"
+                >
+                  再読み込み
+                </button>
+              </div>
+            )}
 
             {/* ガイドグリッド（三分割線 & 枠線） */}
             <div className="absolute inset-0 pointer-events-none border border-white/60">

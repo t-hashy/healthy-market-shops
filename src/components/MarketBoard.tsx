@@ -267,23 +267,36 @@ export default function MarketBoard() {
                 SATOYAMAヘルシーマーケット
               </span>
             </div>
-            {/* カテゴリボタン（スリム） */}
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-              {FILTER_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => handleFilterChange(cat)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap border-2 border-[#2D2622] ${
-                    filter === cat
-                      ? 'bg-[#C86D51] text-white shadow-signboard'
-                      : 'bg-white text-[#4A3E38]'
-                  }`}
-                >
-                  <span>{CATEGORY_ICONS[cat]}</span>
-                  <span className="hidden sm:inline ml-1">{cat === 'ALL' ? 'すべて' : cat}</span>
-                </button>
-              ))}
+            {/* カテゴリボタン（スリム・手ちぎりマステ風） */}
+            <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-1">
+              {FILTER_CATEGORIES.map((cat, idx) => {
+                const isSelected = filter === cat;
+                const rotations = ['-rotate-1', 'rotate-1', '-rotate-0.5', 'rotate-1.5', '-rotate-1'];
+                const rot = rotations[idx % rotations.length];
+                const bgStyles: Record<FilterCategory, { active: string; inactive: string }> = {
+                  ALL: { active: 'bg-[#F0C987] text-[#3D250A]', inactive: 'bg-[#F7E1B5]/85 text-[#543818]' },
+                  農家: { active: 'bg-[#A7D49B] text-[#1C3E14]', inactive: 'bg-[#C4E6BB]/85 text-[#2A5220]' },
+                  飲食: { active: 'bg-[#F5A987] text-[#4A1705]', inactive: 'bg-[#F9C7B2]/85 text-[#6B2A10]' },
+                  カフェ: { active: 'bg-[#D8BA9B] text-[#33200F]', inactive: 'bg-[#E6D2BD]/85 text-[#4E341E]' },
+                  クラフト: { active: 'bg-[#B4CCE4] text-[#142942]', inactive: 'bg-[#CFDFF0]/85 text-[#234164]' },
+                };
+                const style = bgStyles[cat];
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => handleFilterChange(cat)}
+                    className={`tape-torn-sm px-2 sm:px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-black whitespace-nowrap cursor-pointer transition-all duration-200 select-none ${rot} ${
+                      isSelected
+                        ? `${style.active} shadow-[0_2px_4px_rgba(30,15,5,0.4)] scale-105 ring-1 ring-[#2D2622]/40`
+                        : `${style.inactive} shadow-[0_1px_2px_rgba(30,15,5,0.2)] hover:scale-105 hover:-translate-y-0.5 hover:rotate-0`
+                    }`}
+                  >
+                    <span>{CATEGORY_ICONS[cat]}</span>
+                    <span className="hidden sm:inline ml-1">{cat === 'ALL' ? 'すべて' : cat}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -296,7 +309,10 @@ export default function MarketBoard() {
         </div>
         <h1 className="font-title text-3xl sm:text-5xl md:text-6xl font-black text-[#2D2622] tracking-wide py-1 text-center">
           <span className="inline-block whitespace-nowrap tracking-widest mr-2 sm:mr-3">SATOYAMA</span>
-          <span className="inline-block whitespace-nowrap">ヘルシーマーケット</span>
+          <span className="relative inline-block whitespace-nowrap">
+            <span className="relative z-10">ヘルシーマーケット</span>
+            <span aria-hidden="true" className="title-masking-tape" />
+          </span>
         </h1>
       </header>
 
@@ -405,24 +421,95 @@ export default function MarketBoard() {
 
       
 
-      {/* 4. 紙のフライヤー風メッセージ枠 (検索バーの直上に配置) */}
-      <div className="relative max-w-2xl mx-auto mb-6 bg-[#FDFBF7] border-2 border-[#2D2622] rounded-2xl p-5 sm:p-6 shadow-signboard-lg -rotate-[0.6deg] transition-transform hover:rotate-0">
-        <div className="absolute -top-3 left-8 w-20 sm:w-28 h-5 masking-tape-amber -rotate-2 border-dashed border-amber-300/40"></div>
-        <div className="absolute -top-3 right-8 w-16 sm:w-24 h-5 masking-tape-green rotate-3 border-dashed border-emerald-300/40"></div>
-        <div className="flex items-start gap-3 pt-1">
-          <span className="text-3xl sm:text-4xl flex-shrink-0">🌾</span>
-          <div>
-            <h2 className="text-base sm:text-lg font-black text-[#2D2622] leading-snug">
-              こだわりの食べ物と手作りのぬくもりが集まる小さなマーケットです
-            </h2>
-            <p className="text-xs sm:text-sm text-[#59483E] mt-2 leading-relaxed">
-              有機農家の新鮮な野菜、地元野菜を使ったご飯、ていねいに焼き上げたパンや焼き菓子、心を込めたハンドメイド作品。出店者さんとの会話を楽しみながら、お気に入りを見つけに来てください。
-            </p>
-          </div>
+      {/* 4. ペタペタ貼られた複数枚のマステ下地の上に書かれたメッセージ */}
+      <div className="max-w-2xl mx-auto my-7 sm:my-10 px-3 sm:px-4 select-none relative">
+        {/* 背景：同じ太さの手ちぎりマステを複数枚、無造作に最小限重ね貼りした下地 */}
+        <div aria-hidden="true" className="absolute inset-0 -left-2 -right-2 sm:-left-4 sm:-right-4 -top-1 -bottom-1 pointer-events-none z-0">
+          <div
+            className="tape-strip-base tape-torn-var1"
+            style={{
+              top: '0%',
+              height: '19%',
+              left: '-1%',
+              width: '102%',
+              backgroundColor: '#f7d46d',
+              transform: 'rotate(-0.5deg)',
+              zIndex: 1,
+            }}
+          />
+          <div
+            className="tape-strip-base tape-torn-var2"
+            style={{
+              top: '17%',
+              height: '19%',
+              left: '0.5%',
+              width: '101%',
+              backgroundColor: '#f7d46d',
+              transform: 'rotate(0.4deg)',
+              zIndex: 2,
+            }}
+          />
+          <div
+            className="tape-strip-base tape-torn-var3"
+            style={{
+              top: '34%',
+              height: '19%',
+              left: '-1.5%',
+              width: '102.5%',
+              backgroundColor: '#f7d46d',
+              transform: 'rotate(-0.3deg)',
+              zIndex: 3,
+            }}
+          />
+          <div
+            className="tape-strip-base tape-torn-var1"
+            style={{
+              top: '51%',
+              height: '19%',
+              left: '0%',
+              width: '101.5%',
+              backgroundColor: '#f7d46d',
+              transform: 'rotate(0.5deg)',
+              zIndex: 4,
+            }}
+          />
+          <div
+            className="tape-strip-base tape-torn-var2"
+            style={{
+              top: '68%',
+              height: '19%',
+              left: '-1%',
+              width: '102.5%',
+              backgroundColor: '#f7d46d',
+              transform: 'rotate(-0.4deg)',
+              zIndex: 5,
+            }}
+          />
+          <div
+            className="tape-strip-base tape-torn-var3"
+            style={{
+              top: '84%',
+              height: '19%',
+              left: '0.5%',
+              width: '101%',
+              backgroundColor: '#f7d46d',
+              transform: 'rotate(0.3deg)',
+              zIndex: 6,
+            }}
+          />
+        </div>
+
+        {/* 文字コンテンツ（マステ下地の上に直接書かれた佇まい） */}
+        <div className="relative z-10 py-5 sm:py-7 px-3 sm:px-6 text-center">
+          <h2 className="font-title text-lg sm:text-2xl md:text-3xl font-black text-[#26170E] leading-snug sm:leading-relaxed tracking-wide flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
+            <span className="inline-block whitespace-nowrap">こだわりの食べ物と手作りのぬくもりが集まる</span>
+            <span className="inline-block whitespace-nowrap">小さなマーケットです</span>
+          </h2>
+          <p className="font-sans text-xs sm:text-sm md:text-base font-medium text-[#3A2414] mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto">
+            有機農家の新鮮な野菜、地元野菜を使ったご飯、ていねいに焼き上げたパンや焼き菓子、心を込めたハンドメイド作品。出店者さんとの会話を楽しみながら、お気に入りを見つけに来てください。
+          </p>
         </div>
       </div>
-
-
 
       {/* 7. 出店者さんたち専用コルクボードセクション */}
       <section
@@ -453,21 +540,28 @@ export default function MarketBoard() {
           <div className="w-2 h-2.5 bg-[#3D2513]"></div>
         </div>
 
-        {/* コルクボードの見出し（自然な木の板・天然ウッドプレート看板） */}
-        <div className="flex items-center justify-between mb-2 sm:mb-3 px-1 select-none">
-          <div className="relative inline-flex items-center gap-2 sm:gap-3 wood-signboard px-4 sm:px-7 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl -rotate-0.5">
-            {/* 木の板を留める真鍮調の留め鋲（左） */}
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#E5B562] border border-[#7A4B24] shadow-xs flex-shrink-0"></div>
+        {/* コルクボードの見出し（焦がした木板に白文字 ＆ コルクボードに鉄釘で打ち付けられたデザイン） */}
+        <div className="flex items-center justify-between mb-3 sm:mb-4 px-1 select-none">
+          <div className="relative inline-flex items-center gap-2.5 sm:gap-4 burnt-wood-sign px-4 sm:px-8 py-2.5 sm:py-3 rounded-lg -rotate-0.5">
+            {/* コルクボードに打ち付けられた無骨な黒鉄釘（左） */}
+            <div className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1A1816] border border-[#423E3A] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center flex-shrink-0">
+              <div className="w-1.5 h-0.5 bg-[#080706] rotate-45"></div>
+            </div>
 
-            <h2 className="font-title text-lg sm:text-2xl md:text-3xl font-black tracking-wide text-[#331B0A] drop-shadow-[0_1px_0_rgba(255,235,200,0.5)]">
+            {/* 焦がした木肌に白ペイント・チョークで書かれたような見出し文字 */}
+            <h2 className="font-title text-lg sm:text-2xl md:text-3xl font-black tracking-wider text-[#FAF5EB] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
               出店者さんたち
             </h2>
-            <span className="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-[#4E270A]/85 text-[#FCE6CA] border border-[#6E3B13] shadow-inner">
+
+            {/* 漆黒プレートの店舗数バッジ */}
+            <span className="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-[#0D0703]/90 text-[#FCEBD2] border border-[#52331C] shadow-inner">
               {filteredExhibitors.length}店舗
             </span>
 
-            {/* 木の板を留める真鍮調の留め鋲（右） */}
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#E5B562] border border-[#7A4B24] shadow-xs flex-shrink-0"></div>
+            {/* コルクボードに打ち付けられた無骨な黒鉄釘（右） */}
+            <div className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1A1816] border border-[#423E3A] shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center flex-shrink-0">
+              <div className="w-1.5 h-0.5 bg-[#080706] -rotate-45"></div>
+            </div>
           </div>
         </div>
 

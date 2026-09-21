@@ -11,6 +11,9 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["'Zen Maru Gothic'", "-apple-system", "sans-serif"],
+        graffiti: ["'Hachi Maru Pop'", "'Yomogi'", "cursive"],
+        handwriting: ["'Yomogi'", "'Zen Maru Gothic'", "cursive"],
+        title: ["'Kaisei Decol'", "'Zen Maru Gothic'", "serif"],
       },
       colors: {
         marche: {
