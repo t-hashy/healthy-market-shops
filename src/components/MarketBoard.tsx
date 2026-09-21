@@ -316,13 +316,9 @@ export default function MarketBoard() {
         </h1>
       </header>
 
-      {/* 2. イベントチラシ（JPG）閲覧セクション & 次回案内（マステ留め紙デザイン） */}
-      <div className="mb-8 relative">
-        {/* マステ装飾（左右上端） */}
-        <div className="absolute -top-2.5 left-6 sm:left-12 w-16 sm:w-24 h-4.5 sm:h-5 masking-tape-amber -rotate-3 z-10 border-dashed border-amber-300/40 pointer-events-none shadow-2xs"></div>
-        <div className="absolute -top-2.5 right-6 sm:right-12 w-16 sm:w-24 h-4.5 sm:h-5 masking-tape-green rotate-2 z-10 border-dashed border-emerald-300/40 pointer-events-none shadow-2xs"></div>
-
-        <div className="bg-[#FDFBF7] border-2 border-[#2D2622] rounded-2xl p-4 sm:p-5 shadow-[4px_5px_12px_rgba(40,20,5,0.25)]">
+      {/* 2. イベントチラシ（JPG）閲覧セクション & 次回案内（シンプルな白背景） */}
+      <div className="mb-8">
+        <div className="bg-white rounded-2xl p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             {/* 開催情報 */}
             <div className="flex-1">

@@ -63,17 +63,12 @@ export default function ExhibitorCard({ exhibitor, onClick, index = 0 }: Props) 
                  hover:-translate-y-1.5 ${tiltClass} hover:rotate-0 hover:scale-[1.03] 
                  p-1.5 sm:p-2.5 overflow-visible select-none`}
     >
-      {/* メモ用紙をコルクボードに留めるマスキングテープ ＆ アンティーク真鍮留めピン（透過なし・完全不透明） */}
+      {/* メモ用紙をコルクボードに貼るマスキングテープ（ピンなし・マステで貼るだけのデザイン） */}
       <div
-        className={`absolute -top-2 sm:-top-3.5 left-1/2 -translate-x-1/2 w-10 sm:w-16 h-3.5 sm:h-5 
+        className={`absolute -top-2 sm:-top-3 left-1/2 -translate-x-1/2 w-10 sm:w-16 h-3 sm:h-4.5 
                    border border-dashed rounded-xs z-20 pointer-events-none 
-                   shadow-[0_2px_4px_rgba(40,20,5,0.4)] opacity-100 flex items-center justify-center ${tapeClass}`}
-      >
-        {/* マステの中央に刺さった手描きイラスト風の丸画鋲（透過なし・完全不透明） */}
-        <div
-          className="antique-brass-pin !w-2.5 !h-2.5 sm:!w-3 sm:!h-3 !border-[1px] !border-[#281404] !shadow-[1px_1px_0px_#1a0b02]"
-        />
-      </div>
+                   shadow-[1px_1.5px_0px_rgba(40,20,5,0.2)] opacity-100 ${tapeClass}`}
+      />
 
       {/* メモ用紙のミシン目（上部のちぎり跡風ドット線） */}
       <div className="absolute top-0 left-0 right-0 border-t border-dashed border-[#8C7A6B]/30 pointer-events-none" />
