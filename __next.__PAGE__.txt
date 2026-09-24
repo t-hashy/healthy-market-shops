@@ -1,6 +1,6 @@
 1:"$Sreact.fragment"
-2:I[95536,["/healthy-market-shops/_next/static/chunks/de4018447a360ec2.js","/healthy-market-shops/_next/static/chunks/81f5fdd37984ca9e.js","/healthy-market-shops/_next/static/chunks/1fcffe0705028cfd.js"],"default"]
+2:I[95536,["/healthy-market-shops/_next/static/chunks/de4018447a360ec2.js","/healthy-market-shops/_next/static/chunks/81f5fdd37984ca9e.js","/healthy-market-shops/_next/static/chunks/8ee5a7bac9642069.js"],"default"]
 3:I[97367,["/healthy-market-shops/_next/static/chunks/ff1a16fafef87110.js","/healthy-market-shops/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"o-D2L5nbd1j2iAQuSaqfu","rsc":["$","$1","c",{"children":[["$","$L2",null,{}],[["$","script","script-0",{"src":"/healthy-market-shops/_next/static/chunks/1fcffe0705028cfd.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"i_lCukBxOCRfNQFtSWTyp","rsc":["$","$1","c",{"children":[["$","$L2",null,{}],[["$","script","script-0",{"src":"/healthy-market-shops/_next/static/chunks/8ee5a7bac9642069.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
 5:null
