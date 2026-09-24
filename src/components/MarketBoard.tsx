@@ -335,7 +335,7 @@ export default function MarketBoard() {
               <h2 className="text-base sm:text-xl font-black text-[#2D2622]">
                 {activeEvent ? activeEvent.name : upcomingEvent ? upcomingEvent.name : "次回ヘルシーマーケット"}
               </h2>
-              <div className="mt-2 space-y-1 text-xs sm:text-sm text-[#59483E] font-medium">
+              <div className="mt-2 space-y-1 text-sm sm:text-base text-[#59483E] font-medium">
                 {(activeEvent?.date || upcomingEvent?.date) && (
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[#C86D51]">日時:</span>
@@ -498,10 +498,11 @@ export default function MarketBoard() {
         {/* 文字コンテンツ（マステ下地の上に直接書かれた佇まい） */}
         <div className="relative z-10 py-5 sm:py-7 px-3 sm:px-6 text-center">
           <h2 className="font-title text-lg sm:text-2xl md:text-3xl font-black text-[#26170E] leading-snug sm:leading-relaxed tracking-wide flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
-            <span className="inline-block whitespace-nowrap">こだわりの食べ物と手作りのぬくもりが集まる</span>
+            <span className="inline-block whitespace-nowrap">こだわりの食べ物と</span>
+            <span className="inline-block whitespace-nowrap">手作りのぬくもりが集まる</span>
             <span className="inline-block whitespace-nowrap">オーガニックマーケットです</span>
           </h2>
-          <p className="font-sans text-xs sm:text-sm md:text-base font-medium text-[#3A2414] mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto">
+          <p className="font-sans text-base sm:text-base md:text-lg font-medium text-[#3A2414] mt-3 sm:mt-4 leading-relaxed max-w-xl mx-auto">
             有機農家の新鮮な野菜、地元野菜を使ったご飯、ていねいに焼き上げたパンや焼き菓子、心を込めたハンドメイド作品。出店者さんとの会話を楽しみながら、お気に入りを見つけに来てください。
           </p>
         </div>
@@ -597,7 +598,7 @@ export default function MarketBoard() {
               <p className="text-base font-bold text-amber-900">{error}</p>
             </div>
           ) : filteredExhibitors.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 sm:gap-4 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
               {filteredExhibitors.map((exhibitor, idx) => (
                 <ExhibitorCard
                   key={exhibitor.id}
@@ -642,143 +643,46 @@ export default function MarketBoard() {
         totalCount={filteredExhibitors.length}
       />
 
-      {/* イベントチラシ（JPG）同じタブでの原寸表示ビュー（戻るボタン＆オモテウラ切り替え付き） */}
+      {/* イベントチラシ（JPG）原寸拡大ビュー（右上にバツ印のみ、横スワイプ切り替え対応） */}
       {fullscreenFlyerSide && (
         <div
+          onClick={() => setFullscreenFlyerSide(null)}
           onTouchStart={handleFlyerTouchStart}
           onTouchEnd={handleFlyerTouchEnd}
-          className="fixed inset-0 z-50 bg-[#2D2622]/95 backdrop-blur-md overflow-y-auto animate-fade-in select-none"
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md overflow-y-auto animate-fade-in select-none flex items-center justify-center p-2 sm:p-6"
         >
-          {/* PC・スマホ両用: 画面左右のフローティング切り替え矢印ボタン */}
-          {flyerFrontUrl && flyerBackUrl && (
-            <>
-              <button
-                type="button"
-                onClick={handleToggleFlyerSide}
-                className="fixed left-3 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#FAF6F0] text-[#2D2622] border-2 border-[#2D2622] shadow-signboard-lg hover:scale-110 active:scale-95 transition-all flex items-center justify-center font-black text-2xl sm:text-3xl cursor-pointer z-50 group"
-                aria-label="チラシの裏表を切り替える"
-                title="裏表を切り替える (←キーまたはスワイプ)"
-              >
-                <span>‹</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleFlyerSide}
-                className="fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#FAF6F0] text-[#2D2622] border-2 border-[#2D2622] shadow-signboard-lg hover:scale-110 active:scale-95 transition-all flex items-center justify-center font-black text-2xl sm:text-3xl cursor-pointer z-50 group"
-                aria-label="チラシの裏表を切り替える"
-                title="裏表を切り替える (→キーまたはスワイプ)"
-              >
-                <span>›</span>
-              </button>
-            </>
-          )}
+          {/* 右上固定のバツ印（閉じるボタン）のみ配置 */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFullscreenFlyerSide(null);
+            }}
+            className="fixed top-3 right-3 sm:top-5 sm:right-5 z-50 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/65 hover:bg-black/85 text-white border-2 border-white/80 font-black text-xl flex items-center justify-center shadow-lg active:scale-90 transition-all cursor-pointer"
+            aria-label="閉じる"
+          >
+            ✕
+          </button>
 
-          {/* 上部固定ナビゲーションバー */}
-          <div className="sticky top-0 z-40 bg-[#FAF6F0]/95 backdrop-blur-md border-b-2 border-[#2D2622] px-3 sm:px-6 py-3 shadow-md">
-            <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
-              {/* ← 戻るボタン */}
-              <button
-                type="button"
-                onClick={() => setFullscreenFlyerSide(null)}
-                className="btn-handmade px-3.5 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-black text-[#2D2622] bg-white hover:bg-amber-100 border-2 border-[#2D2622] shadow-signboard hover:shadow-signboard-lg cursor-pointer flex items-center gap-1.5 transition-all"
-              >
-                <span className="text-base sm:text-lg">←</span>
-                <span>戻る</span>
-              </button>
-
-              {/* オモテ面・ウラ面の切り替えタブ（両面存在する場合） */}
-              {flyerFrontUrl && flyerBackUrl ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="flex items-center gap-1 sm:gap-2 bg-stone-200/80 p-1 rounded-full border border-stone-300">
-                    <button
-                      type="button"
-                      onClick={() => setFullscreenFlyerSide('front')}
-                      className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-black transition-all cursor-pointer ${
-                        fullscreenFlyerSide === 'front'
-                          ? 'bg-[#C86D51] text-white shadow-xs'
-                          : 'text-stone-700 hover:text-stone-900'
-                      }`}
-                    >
-                      オモテ面 (1/2)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFullscreenFlyerSide('back')}
-                      className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-black transition-all cursor-pointer ${
-                        fullscreenFlyerSide === 'back'
-                          ? 'bg-[#4A6B5D] text-white shadow-xs'
-                          : 'text-stone-700 hover:text-stone-900'
-                      }`}
-                    >
-                      ウラ面 (2/2)
-                    </button>
-                  </div>
-                  <span className="text-[10px] text-stone-500 hidden md:inline">
-                    (横スワイプ・矢印キー切替可)
-                  </span>
-                </div>
-              ) : (
-                <div className="text-xs sm:text-sm font-black text-[#2D2622]">
-                  {fullscreenFlyerSide === 'front' ? 'イベントチラシ（オモテ面）' : 'イベントチラシ（ウラ面）'}
-                </div>
-              )}
-
-              {/* 閉じるアイコン */}
-              <button
-                type="button"
-                onClick={() => setFullscreenFlyerSide(null)}
-                className="w-9 h-9 rounded-full bg-white text-[#2D2622] border-2 border-[#2D2622] font-black text-sm flex items-center justify-center shadow-xs hover:bg-rose-100 cursor-pointer transition-colors"
-                aria-label="閉じる"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-
-          {/* チラシ画像本体（原寸サイズ表示で縦スクロールして細部まで読める） */}
-          <div className="max-w-5xl mx-auto p-3 sm:p-6 pb-24">
-            <div className="relative bg-[#FAF6F0] rounded-2xl border-2 border-[#2D2622] p-2 sm:p-4 shadow-2xl flex flex-col items-center">
-              {fullscreenFlyerSide === 'front' && flyerFrontUrl && (
-                <div className="w-full">
-                  <img
-                    src={flyerFrontUrl}
-                    alt="イベントチラシ（オモテ面）原寸"
-                    className="w-full h-auto rounded-xl object-contain mx-auto shadow-md"
-                  />
-                </div>
-              )}
-              {fullscreenFlyerSide === 'back' && flyerBackUrl && (
-                <div className="w-full">
-                  <img
-                    src={flyerBackUrl}
-                    alt="イベントチラシ（ウラ面）原寸"
-                    className="w-full h-auto rounded-xl object-contain mx-auto shadow-md"
-                  />
-                </div>
-              )}
-
-              {/* 下部ナビゲーション（スクロール後にすぐに戻れる） */}
-              <div className="mt-6 pt-4 border-t-2 border-dashed border-stone-300 w-full flex flex-col sm:flex-row items-center justify-center gap-3">
-                {flyerFrontUrl && flyerBackUrl && (
-                  <button
-                    type="button"
-                    onClick={handleToggleFlyerSide}
-                    className="px-5 py-2.5 rounded-full text-xs sm:text-sm font-black bg-stone-100 hover:bg-stone-200 text-[#2D2622] border-2 border-[#2D2622] shadow-signboard cursor-pointer flex items-center gap-1.5"
-                  >
-                    <span>🔄</span>
-                    <span>{fullscreenFlyerSide === 'front' ? 'ウラ面を見る (2/2) →' : '← オモテ面を見る (1/2)'}</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setFullscreenFlyerSide(null)}
-                  className="px-6 py-2.5 rounded-full text-xs sm:text-sm font-black text-white bg-[#C86D51] hover:bg-[#B35C41] border-2 border-[#2D2622] shadow-signboard cursor-pointer flex items-center gap-1.5"
-                >
-                  <span>←</span>
-                  <span>トップページに戻る</span>
-                </button>
-              </div>
-            </div>
+          {/* チラシ画像本体（装飾枠なしで画像だけがダイレクトに拡大表示） */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-4xl w-full flex items-center justify-center my-auto py-6"
+          >
+            {fullscreenFlyerSide === 'front' && flyerFrontUrl && (
+              <img
+                src={flyerFrontUrl}
+                alt="イベントチラシ（オモテ面）原寸"
+                className="w-full h-auto max-h-[92vh] object-contain rounded-lg shadow-2xl animate-fade-in"
+              />
+            )}
+            {fullscreenFlyerSide === 'back' && flyerBackUrl && (
+              <img
+                src={flyerBackUrl}
+                alt="イベントチラシ（ウラ面）原寸"
+                className="w-full h-auto max-h-[92vh] object-contain rounded-lg shadow-2xl animate-fade-in"
+              />
+            )}
           </div>
         </div>
       )}

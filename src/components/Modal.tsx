@@ -298,11 +298,11 @@ export default function Modal({
 
           {/* 出店者紹介文（メモ用紙に手書きで書かれたようなメッセージ欄） */}
           {exhibitor.description && (
-            <div className="relative mb-5 bg-[#FAF6F0]/70 p-3.5 sm:p-4 rounded-xl border-2 border-dashed border-[#8C7A6B]/50 shadow-2xs">
-              <div className="text-[11px] font-black text-[#8C5D3A] mb-1.5 flex items-center gap-1 font-handwriting">
+            <div className="relative mb-5 bg-[#FAF6F0]/70 p-4 sm:p-5 rounded-xl border-2 border-dashed border-[#8C7A6B]/50 shadow-2xs">
+              <div className="text-xs sm:text-sm font-black text-[#8C5D3A] mb-1.5 flex items-center gap-1 font-handwriting">
                 <span>わたしたち</span>
               </div>
-              <p className="text-xs sm:text-sm text-[#2D2622] leading-relaxed whitespace-pre-wrap font-sans">
+              <p className="text-base sm:text-base text-[#2D2622] leading-relaxed whitespace-pre-wrap font-sans">
                 {exhibitor.description}
               </p>
             </div>
@@ -311,21 +311,21 @@ export default function Modal({
           {/* 出店日 ＆ エリア（付箋メモ風） */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
             {exhibitor.marketDays && (
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-[#2D2622] bg-[#FAF6F0] p-2.5 rounded-lg border border-[#3D322B]/20 shadow-2xs">
-                <span className="font-black text-[#C86D51] text-base">📅</span>
+              <div className="flex items-center gap-2.5 text-sm sm:text-base text-[#2D2622] bg-[#FAF6F0] p-3 rounded-lg border border-[#3D322B]/20 shadow-2xs">
+                <span className="font-black text-[#C86D51] text-lg">📅</span>
                 <div>
-                  <div className="text-[10px] text-stone-500 font-bold">出店日</div>
-                  <div className="font-bold">{exhibitor.marketDays}</div>
+                  <div className="text-xs text-stone-500 font-bold">出店日</div>
+                  <div className="font-bold text-sm sm:text-base">{exhibitor.marketDays}</div>
                 </div>
               </div>
             )}
 
             {exhibitor.address && (
-              <div className="flex items-start gap-2 text-xs sm:text-sm text-[#2D2622] bg-[#FAF6F0] p-2.5 rounded-lg border border-[#3D322B]/20 shadow-2xs">
-                <span className="font-black text-[#4A6B5D] text-base">📍</span>
+              <div className="flex items-start gap-2.5 text-sm sm:text-base text-[#2D2622] bg-[#FAF6F0] p-3 rounded-lg border border-[#3D322B]/20 shadow-2xs">
+                <span className="font-black text-[#4A6B5D] text-lg">📍</span>
                 <div>
-                  <div className="text-[10px] text-stone-500 font-bold">エリア・ブース</div>
-                  <div className="font-bold">{exhibitor.address}</div>
+                  <div className="text-xs text-stone-500 font-bold">エリア・ブース</div>
+                  <div className="font-bold text-sm sm:text-base">{exhibitor.address}</div>
                 </div>
               </div>
             )}
@@ -334,10 +334,7 @@ export default function Modal({
           {/* Web・SNSリンク（カラフルなマスキングテープ風ボタン） */}
           {links.length > 0 && (
             <div className="mb-5 pt-3 border-t-2 border-dashed border-[#8C7A6B]/30">
-              <h3 className="text-xs sm:text-sm font-black text-[#2D2622] mb-2.5 flex items-center gap-1.5 font-handwriting">
-                <span>🌐</span>
-                <span>ウェブサイト ＆ SNSリンク</span>
-              </h3>
+             
               <div className="flex flex-wrap gap-2">
                 {links.map((link, idx) => {
                   const tapeColors = [
@@ -353,7 +350,7 @@ export default function Modal({
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-black border border-dashed shadow-2xs hover:-translate-y-0.5 transition-all ${tapeClass}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-black border border-dashed shadow-2xs hover:-translate-y-0.5 transition-all ${tapeClass}`}
                     >
                       <span>{link.title}</span>
                       <span className="text-[10px]">↗</span>
@@ -367,7 +364,7 @@ export default function Modal({
           {/* 出店履歴（スタンプカード風） */}
           {participatingEvents.length > 0 && (
             <div className="mb-4 p-3 bg-[#FAF6F0]/90 rounded-xl border-2 border-dashed border-[#8C7A6B]/40">
-              <div className="text-xs font-black text-[#2D2622] mb-2 flex items-center gap-1 font-handwriting">
+              <div className="text-xs sm:text-sm font-black text-[#2D2622] mb-2 flex items-center gap-1 font-handwriting">
                 
                 <span>出店履歴</span>
               </div>
@@ -377,7 +374,7 @@ export default function Modal({
                     key={ev.id}
                     type="button"
                     onClick={() => onSelectEvent && onSelectEvent(ev.id)}
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-white text-[#4A3E38] border border-stone-400 hover:border-[#4A6B5D] hover:bg-emerald-50 cursor-pointer shadow-2xs transition-colors"
+                    className="text-xs sm:text-sm font-bold px-2.5 py-1 rounded-full bg-white text-[#4A3E38] border border-stone-400 hover:border-[#4A6B5D] hover:bg-emerald-50 cursor-pointer shadow-2xs transition-colors"
                   >
                     💮 {ev.name}
                   </button>
@@ -391,7 +388,7 @@ export default function Modal({
             <button
               type="button"
               onClick={() => setIsEditRequestOpen(true)}
-              className="text-xs font-bold text-[#C86D51] hover:underline flex items-center gap-1 cursor-pointer font-handwriting"
+              className="text-xs sm:text-sm font-bold text-[#C86D51] hover:underline flex items-center gap-1 cursor-pointer font-handwriting"
             >
               <span>✎</span>
               <span>掲載内容の変更・お問い合わせはこちら</span>
