@@ -58,7 +58,7 @@ export default function ExhibitorCard({ exhibitor, onClick, index = 0 }: Props) 
   return (
     <div
       onClick={onClick}
-      className={`group relative flex flex-col w-full aspect-square memo-paper-card rounded-md sm:rounded-lg cursor-pointer 
+      className={`group relative flex flex-col w-full aspect-[3/4] sm:aspect-[4/5] memo-paper-card rounded-md sm:rounded-lg cursor-pointer 
                  transition-all duration-300 ease-out
                  hover:-translate-y-1.5 ${tiltClass} hover:rotate-0 hover:scale-[1.03] 
                  p-2 sm:p-2.5 overflow-visible select-none`}
@@ -73,8 +73,8 @@ export default function ExhibitorCard({ exhibitor, onClick, index = 0 }: Props) 
       {/* メモ用紙のミシン目（上部のちぎり跡風ドット線） */}
       <div className="absolute top-0 left-0 right-0 border-t border-dashed border-[#8C7A6B]/30 pointer-events-none" />
 
-      {/* 写真エリア（メモ用紙に貼られたスナップ写真風：横長2:1比率 & ホバーで拡大・微回転） */}
-      <div className="relative w-full h-[52%] bg-[#FAF6F0] rounded-xs overflow-hidden border border-[#5C4D42]/30 flex-shrink-0 shadow-xs">
+      {/* 写真エリア（メモ用紙に貼られたスナップ写真風：横長比率 & ホバーで拡大・微回転） */}
+      <div className="relative w-full aspect-[4/3] bg-[#FAF6F0] rounded-xs overflow-hidden border border-[#5C4D42]/30 flex-shrink-0 shadow-xs">
         <div className="relative w-full h-full transition-transform duration-300 ease-out group-hover:scale-108 group-hover:rotate-1">
           <Image
             src={mainImage}
@@ -95,37 +95,35 @@ export default function ExhibitorCard({ exhibitor, onClick, index = 0 }: Props) 
       </div>
 
       {/* 情報エリア（メモ用紙に手書きされたような風合い） */}
-      <div className="flex-1 flex flex-col justify-between pt-1.5 sm:pt-1.5 overflow-hidden">
-        <div>
-          {/* 丸型・スタンプ風カテゴリバッジ */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-1 max-h-5 overflow-hidden">
-              {categories.slice(0, 2).map((cat) => {
-                const catStyle = CATEGORY_STYLES[cat] || defaultStyles;
-                return (
-                  <span
-                    key={cat}
-                    className={`inline-flex items-center px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-full text-[9px] sm:text-[10px] font-black border border-[#2D2622]/30 shadow-2xs whitespace-nowrap ${catStyle.badgeBg} ${catStyle.badgeText}`}
-                  >
-                    {cat}
-                  </span>
-                );
-              })}
-            </div>
-          )}
+      <div className="flex-1 flex flex-col justify-start pt-2 overflow-hidden">
+        {/* 丸型・スタンプ風カテゴリバッジ */}
+        {categories.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-1 max-h-5 overflow-hidden">
+            {categories.slice(0, 2).map((cat) => {
+              const catStyle = CATEGORY_STYLES[cat] || defaultStyles;
+              return (
+                <span
+                  key={cat}
+                  className={`inline-flex items-center px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-full text-[9px] sm:text-[10px] font-black border border-[#2D2622]/30 shadow-2xs whitespace-nowrap ${catStyle.badgeBg} ${catStyle.badgeText}`}
+                >
+                  {cat}
+                </span>
+              );
+            })}
+          </div>
+        )}
 
-          {/* 出店者名（手書きメモ風の文字） */}
-          <h3 className="font-title font-black text-xs sm:text-xs md:text-sm text-[#2D2622] leading-tight truncate group-hover:text-[#C86D51] transition-colors">
-            {exhibitor.name}
-          </h3>
+        {/* 出店者名（手書きメモ風の文字：他のpタグと同等以上の見出しサイズ） */}
+        <h3 className="font-title font-black text-sm sm:text-base md:text-lg text-[#2D2622] leading-tight truncate group-hover:text-[#C86D51] transition-colors">
+          {exhibitor.name}
+        </h3>
 
-          {/* 出店者紹介文（PC表示のみ表示、100文字で切って「...」とする） */}
-          {truncatedDescription && (
-            <p className="hidden sm:block text-[10px] sm:text-xs text-[#59483E] line-clamp-2 mt-0.5 leading-snug">
-              {truncatedDescription}
-            </p>
-          )}
-        </div>
+        {/* 出店者紹介文（他のpタグと同等のサイズ：スマホでも閲覧可能） */}
+        {truncatedDescription && (
+          <p className="text-xs sm:text-sm md:text-base text-[#59483E] line-clamp-2 sm:line-clamp-3 mt-1 leading-snug sm:leading-relaxed">
+            {truncatedDescription}
+          </p>
+        )}
       </div>
     </div>
   );

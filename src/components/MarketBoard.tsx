@@ -497,7 +497,7 @@ export default function MarketBoard() {
 
         {/* 文字コンテンツ（マステ下地の上に直接書かれた佇まい） */}
         <div className="relative z-10 py-5 sm:py-7 px-3 sm:px-6 text-center">
-          <h2 className="font-title text-lg sm:text-2xl md:text-3xl font-black text-[#26170E] leading-snug sm:leading-relaxed tracking-wide flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
+          <h2 className="font-title text-xl min-[400px]:text-2xl sm:text-3xl md:text-4xl font-black text-[#26170E] leading-snug sm:leading-normal tracking-wide flex flex-wrap justify-center items-center gap-x-2.5 gap-y-1 sm:gap-x-3 sm:gap-y-1.5">
             <span className="inline-block whitespace-nowrap">こだわりの食べ物と</span>
             <span className="inline-block whitespace-nowrap">手作りのぬくもりが集まる</span>
             <span className="inline-block whitespace-nowrap">オーガニックマーケットです</span>
