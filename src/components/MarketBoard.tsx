@@ -631,6 +631,19 @@ export default function MarketBoard() {
         </div>
       </section>
 
+      {/* フッター（サイト情報） */}
+      <footer className="mt-10 sm:mt-14 pb-8 text-center text-[11px] sm:text-xs text-[#59483E]/75">
+        <p className="flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-3 gap-y-1">
+          <span>(c)SATOYAMAヘルシーマーケット実行委員会</span>
+          <a
+            href="mailto:healthymarket2013@gmail.com"
+            className="hover:underline hover:text-[#2D2622] transition-colors"
+          >
+            healthymarket2013@gmail.com
+          </a>
+        </p>
+      </footer>
+
       {/* 出店者詳細モーダル（横スワイプ・横矢印ナビゲーション対応） */}
       <Modal
         exhibitor={selectedExhibitor}
